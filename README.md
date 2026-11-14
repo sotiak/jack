@@ -1,63 +1,61 @@
-# jack
+# Back
 
-Python 3.14 アプリケーションの開発環境です。Nix は Python ランタイムとシステム依存を、
-uv は Python パッケージと開発ツールを管理します。
+The four TTFs in `dist/` are Regular, Italic, Bold, and Bold Italic. Install them and choose **Back** in your editor or terminal.
 
-## 開発環境に入る
+## Development
 
-direnv と nix-direnv が導入済みであれば、プロジェクト直下で一度だけ次を実行します。
+Nix provides Python 3.14, uv, and the system libraries. uv manages the Python packages.
 
-```bash
-direnv allow
-```
-
-direnv を使わない場合は Nix の開発シェルに入ります。
-
-```bash
-nix develop
-```
-
-どちらの場合も、Python は Nix が提供する 3.14 系、`uv` は Nix の開発シェル内のものが使われます。
-uv による Python 本体のダウンロードは無効化されています。
-
-## 依存関係のインストール
-
-```bash
+```sh
+direnv allow   # or: nix develop
 uv sync
 ```
 
-`pyproject.toml` と `uv.lock` に従って `.venv` が作成されます。`uv.lock` は Git 管理対象です。
+## Build and test
 
-## 開発コマンド
-
-```bash
+```sh
+uv run jack                  # build dist/
+uv run pytest                # tests
 uv run ruff check .
-uv run ruff format .
+uv run ruff format --check .
 uv run ty check
-uv run pytest
 ```
 
-`uv run pytest` は `pytest-cov` によるカバレッジ表示付きで実行されます。
+`uv run jack` reads `config.toml`. If `assets/inputs/` is missing or out of date, it fetches the pinned inputs automatically. Run `uv run jack-fetch` to force a re-fetch.
 
-新規コードには型アノテーションを付けてください。ty は `pyproject.toml` の
-`[tool.ty.environment]` で Python 3.14 を対象に型チェックします。
+## Inputs
 
-## 依存ライブラリの追加・更新
+`assets/sources.toml` pins:
 
-```bash
-uv add <package>          # 実行時依存
-uv add --dev <package>    # 開発時依存
-uv lock                   # 依存関係の再解決
-uv sync                   # ロックファイルに合わせて環境を更新
+- Hack 3.003 — GitHub release zip, SHA-256
+- BIZ UD Gothic — npm `@fontsource/biz-udgothic` 5.3.0, npm SRI
+- Nerd Fonts 3.3.0 — GitHub release `NerdFontsSymbolsOnly.zip`, SHA-256
+
+Renovate updates these versions and digests. On `renovate/**` pull requests, CI rebuilds `dist/` and `output.sha256` after the tests pass. For a manual update:
+
+```sh
+rm -rf assets/inputs
+uv run jack-fetch
+uv run jack
 ```
 
-依存関係を変更したら `uv.lock` もコミットしてください。
+To add a Python dependency, use `uv add` or `uv add --dev`, then commit `uv.lock`.
 
-## Nix と uv の責務分担
+## Configuration
 
-- **Nix**: Python 3.14、uv、およびシステムライブラリを提供します。Python パッケージは管理しません。
-- **uv**: `pyproject.toml` / `uv.lock` に基づいて、実行時依存と開発ツール
-  （Ruff、ty、pytest、pytest-cov）を `.venv` にインストールします。
+`config.toml` has the knobs: Japanese scale and stroke weight, italic angle, Nerd icons, slash-zero style, and the visible full-width space. The defaults are commented in the file.
 
-Python のバージョンは `flake.nix`、`.python-version`、`pyproject.toml` の
-`requires-python` で 3.14 系に揃えています。
+## Layout
+
+```text
+src/jack/            build, fetch, italic, specimen
+assets/sources.toml  pinned font inputs
+assets/inputs/       downloaded fonts (ignored)
+assets/licenses/     input font licenses
+config.toml          build settings
+dist/                generated fonts and previews
+```
+
+## License
+
+The generated fonts are released under the SIL Open Font License 1.1. Hack-derived parts keep their original notices. When redistributing the fonts, include `dist/BIZ-OFL.txt`, `dist/Hack.txt`, and the `dist/nerd/` directory. See those files for the full terms.

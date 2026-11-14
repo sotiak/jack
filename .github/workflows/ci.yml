@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+      - run: nix develop --command uv sync --locked
+      - run: nix develop --command uv run --locked ruff check .
+      - run: nix develop --command uv run --locked ruff format --check .
+      - run: nix develop --command uv run --locked ty check
+      - run: nix develop --command uv run --locked jack
+      - run: nix develop --command uv run --locked pytest
+      - uses: actions/upload-artifact@v7
+        with:
+          name: font-previews
+          path: dist/*.png
+          if-no-files-found: error
+
+  update-outputs:
+    needs: test
+    if: >-
+      github.event_name == 'pull_request' &&
+      startsWith(github.head_ref, 'renovate/') &&
+      github.actor == 'renovate[bot]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.head_ref }}
+      - uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+      - run: nix develop --command uv sync --locked
+      - run: nix develop --command uv run --locked jack
+      - name: Commit generated font outputs
+        run: |
+          sha256sum \
+            dist/Back-Bold.ttf \
+            dist/Back-BoldItalic.ttf \
+            dist/Back-Italic.ttf \
+            dist/Back-Regular.ttf > output.sha256
+          git config user.name "github-actions[bot]"
+          git config user.email \
+            "41898282+github-actions[bot]@users.noreply.github.com"
+          git add dist output.sha256
+          if git diff --cached --quiet; then
+            echo "No font output changes"
+          else
+            git commit -m "Update font outputs"
+            git push origin "HEAD:${GITHUB_HEAD_REF}"
+          fi

@@ -1,0 +1,45 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "nix": { "enabled": true },
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Hack release zip",
+      "managerFilePatterns": ["/^assets\\/sources\\.toml$/"],
+      "matchStrings": [
+        "\\[hack\\]\\ntag = \"(?<currentValue>[^\"]+)\"\\nsha256 = \"(?<currentDigest>[a-f0-9]{64})\""
+      ],
+      "autoReplaceStringTemplate": "[hack]\ntag = \"{{{newValue}}}\"\nsha256 = \"{{{newDigest}}}\"",
+      "datasourceTemplate": "github-release-attachments",
+      "depNameTemplate": "source-foundry/Hack",
+      "versioningTemplate": "loose"
+    },
+    {
+      "customType": "regex",
+      "description": "BIZ UD Gothic npm tarball",
+      "managerFilePatterns": ["/^assets\\/sources\\.toml$/"],
+      "matchStrings": [
+        "\\[biz\\]\\nversion = \"(?<currentValue>[^\"]+)\"\\nintegrity = \"(?<currentDigest>[^\"]+)\""
+      ],
+      "autoReplaceStringTemplate": "[biz]\nversion = \"{{{newValue}}}\"\nintegrity = \"{{{newDigest}}}\"",
+      "datasourceTemplate": "npm",
+      "depNameTemplate": "@fontsource/biz-udgothic"
+    },
+    {
+      "customType": "regex",
+      "description": "Nerd Fonts symbols-only release",
+      "managerFilePatterns": ["/^assets\\/sources\\.toml$/"],
+      "matchStrings": [
+        "\\[nerd\\]\\ntag = \"(?<currentValue>[^\"]+)\"\\nsha256 = \"(?<currentDigest>[a-f0-9]{64})\""
+      ],
+      "autoReplaceStringTemplate": "[nerd]\ntag = \"{{{newValue}}}\"\nsha256 = \"{{{newDigest}}}\"",
+      "datasourceTemplate": "github-release-attachments",
+      "depNameTemplate": "ryanoasis/nerd-fonts",
+      "versioningTemplate": "loose"
+    }
+  ],
+  "packageRules": [
+    { "matchManagers": ["custom.regex"], "groupName": "font inputs" }
+  ]
+}
