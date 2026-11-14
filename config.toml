@@ -1,16 +1,12 @@
-# 日本語の原寸は入力と出力の UPM 比で換算します。1.0 が原寸です。
-japanese_scale = 1.0
-baseline_shift = 0  # Hack のフォント単位。正の値で上へ移動
+[japanese]
+scale = 1.0  # 入力と出力のUPM比で換算。1.0が原寸
+baseline_shift = 0  # Hackのフォント単位。正の値で上へ移動
+italic_degrees = 8  # Italic・Bold Italicの日本語。0で立体
+regular_strength = 12  # Regularの日本語だけに適用。0で元の太さ
+bold_strength = 16  # 日本語太字の画線に加える幅。0で元の太さ
+italic_strength = 8  # Italicの日本語だけに適用。0で従来の太さ
 
-visible_fullwidth_space = true  # U+3000 を角丸の破線枠で表示
-
+[glyphs]
+visible_fullwidth_space = true  # U+3000の既定表示。ss20で反転
 nerd_icons = true  # 私用領域のアイコンを半角1セルで追加
-
-japanese_italic_degrees = 8  # Italic・Bold Italic の日本語。0 で立体
-
-zero_style = "feature"  # 標準はドット、OpenType zero でスラッシュ
-
-japanese_regular_strength = 12  # Regular の日本語だけに適用。0 で元の太さ
-japanese_bold_strength = 16  # 日本語太字の画線に加える幅。0 で元の太さ
-
-japanese_italic_strength = 8  # Italic の日本語だけに適用。0 で従来の太さ
+zero_style = "feature"  # 標準はドット、OpenType zeroでスラッシュ

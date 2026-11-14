@@ -74,6 +74,55 @@
       {
         inherit formatter;
 
+        apps = {
+          capture-showcase = {
+            type = "app";
+            program = "${
+              pkgs.writeShellApplication {
+                name = "capture-showcase";
+                excludeShellChecks = [ "SC2016" ];
+                runtimeInputs = [
+                  pkgs.charm-freeze
+                  pkgs.librsvg
+                  pkgs.fontconfig
+                  pkgs.coreutils
+                  pkgs.bash
+                ];
+                text = ''
+                  [ -f dist/Jack-Regular.ttf ] || {
+                    echo "dist/Jack-Regular.ttf not found; run uv run build first" >&2
+                    exit 1
+                  }
+                  mkdir -p .github/images
+                  work=$(mktemp -d)
+                  trap 'rm -rf "$work"' EXIT
+
+                  cat >"$work/fonts.conf" <<EOF
+                  <?xml version="1.0"?>
+                  <!DOCTYPE fontconfig SYSTEM "fonts.dtd">
+                  <fontconfig>
+                    <dir>$PWD/dist</dir>
+                    <cachedir>$work/fonts</cachedir>
+                  </fontconfig>
+                  EOF
+                  export FONTCONFIG_FILE="$work/fonts.conf"
+                  fc-cache -f >/dev/null
+
+                  freeze README.md --lines 1,16 --wrap 72 \
+                    --font.family Jack --font.size 12 \
+                    --theme github --background "#ffffff" --padding 16 \
+                    -o .github/images/readme.png
+
+                  freeze scripts/logo.txt \
+                    --font.family Jack --font.size 22 \
+                    --background "#ffffff" --padding 28 --theme github \
+                    -o .github/images/logo.png
+                '';
+              }
+            }/bin/capture-showcase";
+          };
+        };
+
         devShells.default = pkgs.mkShell {
           packages = [
             python

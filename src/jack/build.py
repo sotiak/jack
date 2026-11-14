@@ -206,11 +206,11 @@ def space_marker(half, em, style):
     return pen.glyph(), half - radius
 
 
-def add_zero_feature(font, original, alternate):
+def add_substitution_feature(font, tag, original, alternate):
     table = font["GSUB"].table
     lookups = table.LookupList
     feature = otTables.FeatureRecord()
-    feature.FeatureTag = "zero"  # Sorts after every feature in the pinned Hack inputs.
+    feature.FeatureTag = tag
     feature.Feature = otTables.Feature()
     feature.Feature.FeatureParams = None
     feature.Feature.LookupListIndex = [len(lookups.Lookup)]
@@ -262,8 +262,6 @@ def build_face(
             glyf[name].recalcBounds(glyf)
             if glyf[name].xMin != metrics[name][1]:
                 raise ValueError(f"{style}: slash zero left bearing differs from Hack")
-            if zero_style == "feature":
-                add_zero_feature(font, original, name)
         for cp, name in list(cmap.items()):
             if unicodedata.east_asian_width(chr(cp)) in {"W", "F"} and metrics[name][0] == half:
                 new_name = f"wide{cp:04X}"
@@ -326,12 +324,17 @@ def build_face(
 
         if nerd_icons:
             notices.add(add_nerd_icons(font, cmap, half))
-        if visible_space:
-            name = "ideographicSpaceMarker"
-            glyf[name], bearing = space_marker(half, em, style)
-            glyf[name].recalcBounds(glyf)
-            metrics[name] = (2 * half, bearing)
-            cmap[0x3000] = name
+        name = "ideographicSpaceMarker"
+        glyf[name], bearing = space_marker(half, em, style)
+        glyf[name].recalcBounds(glyf)
+        metrics[name] = (2 * half, bearing)
+        blank = "ideographicSpaceBlank"
+        glyf[blank] = Glyph()
+        metrics[blank] = (2 * half, 0)
+        cmap[0x3000] = name if visible_space else blank
+        add_substitution_feature(font, "ss20", cmap[0x3000], blank if visible_space else name)
+        if zero_style == "feature":
+            add_substitution_feature(font, "zero", cmap[ord("0")], "zero.slash")
         font.setGlyphOrder(list(glyf.glyphOrder))
         uvs = [(cp, sel, name) for (cp, sel), name in sorted(variations.items())]
         FontBuilder(font=font).setupCharacterMap(cmap, uvs=uvs, allowFallback=True)
@@ -358,7 +361,8 @@ def build_face(
 def main():
     ensure_inputs()
     cfg = tomllib.loads(CONFIG.read_text())
-    scale, shift = cfg["japanese_scale"], cfg["baseline_shift"]
+    japanese, glyphs = cfg["japanese"], cfg["glyphs"]
+    scale, shift = japanese["scale"], japanese["baseline_shift"]
     if (
         not math.isfinite(scale)
         or not 0 < scale <= 2
@@ -366,29 +370,29 @@ def main():
         or abs(shift) > 2048
     ):
         raise ValueError(
-            "Expected 0 < japanese_scale <= 2 and an integer baseline_shift within ±2048"
+            "Expected 0 < japanese.scale <= 2 and an integer japanese.baseline_shift within ±2048"
         )
-    visible = cfg.get("visible_fullwidth_space", False)
+    visible = glyphs.get("visible_fullwidth_space", False)
     if type(visible) is not bool:
-        raise ValueError("visible_fullwidth_space must be true or false")
-    nerd = cfg.get("nerd_icons", False)
+        raise ValueError("glyphs.visible_fullwidth_space must be true or false")
+    nerd = glyphs.get("nerd_icons", False)
     if type(nerd) is not bool:
-        raise ValueError("nerd_icons must be true or false")
-    angle = cfg.get("japanese_italic_degrees", 8)
+        raise ValueError("glyphs.nerd_icons must be true or false")
+    angle = japanese.get("italic_degrees", 8)
     if type(angle) not in (int, float) or not 0 <= angle <= 15:
-        raise ValueError("japanese_italic_degrees must be between 0 and 15")
-    zero_style = cfg.get("zero_style", "dot")
+        raise ValueError("japanese.italic_degrees must be between 0 and 15")
+    zero_style = glyphs.get("zero_style", "dot")
     if zero_style not in ("feature", "slash", "dot"):
-        raise ValueError("zero_style must be feature, slash or dot")
-    strength = cfg.get("japanese_bold_strength", 0)
+        raise ValueError("glyphs.zero_style must be feature, slash or dot")
+    strength = japanese.get("bold_strength", 0)
     if type(strength) is not int or not 0 <= strength <= 48:
-        raise ValueError("japanese_bold_strength must be an integer from 0 to 48")
-    regular_strength = cfg.get("japanese_regular_strength", 0)
+        raise ValueError("japanese.bold_strength must be an integer from 0 to 48")
+    regular_strength = japanese.get("regular_strength", 0)
     if type(regular_strength) is not int or not 0 <= regular_strength <= 48:
-        raise ValueError("japanese_regular_strength must be an integer from 0 to 48")
-    italic_strength = cfg.get("japanese_italic_strength", 0)
+        raise ValueError("japanese.regular_strength must be an integer from 0 to 48")
+    italic_strength = japanese.get("italic_strength", 0)
     if type(italic_strength) is not int or not 0 <= italic_strength <= 48:
-        raise ValueError("japanese_italic_strength must be an integer from 0 to 48")
+        raise ValueError("japanese.italic_strength must be an integer from 0 to 48")
     out = DIST
     version = project_version()
     out.mkdir(exist_ok=True)
