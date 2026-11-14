@@ -39,16 +39,10 @@ jobs:
         run: nix develop --command uv run --locked ty check
 
       - name: Build fonts
-        run: nix develop --command uv run --locked jack
+        run: nix develop --command uv run --locked build
 
       - name: Test
         run: nix develop --command uv run --locked pytest
-
-      # Renovate PRs may legitimately change the generated fonts before the
-      # update-outputs job refreshes output.sha256.
-      - name: Verify output checksums
-        if: github.actor != 'renovate[bot]'
-        run: sha256sum -c output.sha256
 
       - name: Upload font previews
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -66,56 +60,6 @@ jobs:
           path: dist/
           if-no-files-found: error
           retention-days: 7
-
-  update-outputs:
-    needs: test
-    if: >-
-      github.event_name == 'pull_request' &&
-      startsWith(github.head_ref, 'renovate/') &&
-      github.actor == 'renovate[bot]' &&
-      github.event.pull_request.head.repo.full_name == github.repository
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    permissions:
-      contents: write
-    steps:
-      - name: Checkout pull request branch
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          ref: ${{ github.head_ref }}
-
-      - name: Install Nix
-        uses: cachix/install-nix-action@75c75c31ebece974e48ebc36b4ad125bd97bd97b # 31.11.3
-        with:
-          extra_nix_config: |
-            experimental-features = nix-command flakes
-
-      - name: Install dependencies
-        run: nix develop --command uv sync --locked
-
-      - name: Build fonts
-        run: nix develop --command uv run --locked jack
-
-      - name: Regenerate previews
-        run: nix develop --command uv run --locked pytest
-
-      - name: Commit generated font outputs
-        run: |
-          sha256sum \
-            dist/Back-Bold.ttf \
-            dist/Back-BoldItalic.ttf \
-            dist/Back-Italic.ttf \
-            dist/Back-Regular.ttf > output.sha256
-          git config user.name "github-actions[bot]"
-          git config user.email \
-            "41898282+github-actions[bot]@users.noreply.github.com"
-          git add dist output.sha256
-          if git diff --cached --quiet; then
-            echo "No font output changes"
-          else
-            git commit -m "Update font outputs"
-            git push origin "HEAD:${GITHUB_HEAD_REF}"
-          fi
 
   release:
     if: startsWith(github.ref, 'refs/tags/v')

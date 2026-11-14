@@ -101,11 +101,13 @@ def _fetch_biz(source: Mapping[str, str], tmp: Path, staging: Path) -> None:
     with tarfile.open(archive) as files:
         for member in files.getmembers():
             name = Path(member.name).name
-            if (
-                not member.isfile()
-                or not member.name.startswith("package/files/")
-                or name not in expected
-            ):
+            if not member.isfile() or not member.name.startswith("package/files/"):
+                continue
+            if name not in expected:
+                if name.endswith(".woff") and name not in {
+                    f"biz-udgothic-japanese-{weight}-normal.woff" for weight in BIZ_WEIGHTS
+                }:
+                    raise ValueError(f"Unexpected BIZ WOFF file: {member.name}")
                 continue
             extracted = files.extractfile(member)
             if extracted is None:
@@ -148,11 +150,3 @@ def ensure_inputs() -> None:
         verify_inputs()
     except OSError, ValueError:
         fetch_inputs(force=True)
-
-
-def main() -> None:
-    fetch_inputs(force=True)
-
-
-if __name__ == "__main__":
-    main()

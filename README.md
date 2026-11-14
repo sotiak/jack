@@ -17,14 +17,22 @@ uv sync
 ## Build and test
 
 ```sh
-uv run jack                  # build dist/
+uv run build                 # build dist/
 uv run pytest                # tests
 uv run ruff check .
 uv run ruff format --check .
 uv run ty check
 ```
 
-`uv run jack` reads `config.toml`. If `assets/inputs/` is missing or out of date, it fetches the pinned inputs automatically. Run `uv run jack-fetch` to force a re-fetch.
+`uv run build` reads `config.toml`. If `assets/inputs/` is missing or out of date, it fetches the pinned inputs automatically. Delete `assets/inputs/` to force a re-fetch.
+
+## Font inputs and automation
+
+`assets/sources.toml` pins the download versions and archive digests. The ignored
+`assets/inputs/.lock` records the input configuration; extracted files are checked for
+presence, not rehashed on every build. Renovate updates font and dependency pins, including
+`flake.lock`. CI builds and tests the fonts without committing `dist/`. On a version tag,
+it publishes the generated fonts and checksums as a release archive.
 
 ## Configuration
 

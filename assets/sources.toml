@@ -1,5 +1,5 @@
-# Pinned third-party inputs for `uv run jack-fetch`.
-# Extracted files are verified against this file's digest in assets/inputs/.lock.
+# Pinned third-party inputs for the build.
+# Downloads are digest-verified; .lock identifies the input configuration.
 
 [hack]
 tag = "v3.003"
