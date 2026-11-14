@@ -100,6 +100,8 @@
 
           # Nix clears SSL_CERT_FILE, so restore a CA bundle for urllib.
           shellHook = ''
+            # Keep pre-commit's Python dependencies out of the project's uv environment.
+            unset PYTHONPATH
             export SSL_CERT_FILE="${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
             ${preCommit.shellHook}
           '';
