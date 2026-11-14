@@ -29,7 +29,7 @@ direnv allow   # or run; nix develop
 uv sync
 ```
 
-## Build / Testing
+### Build / Testing
 
 ```sh
 uv run build
@@ -41,7 +41,7 @@ nix fmt
 
 `config.toml`でフォントビルド時のパラメータを設定できます。
 
-## Release publishing
+### Release publishing
 
 `pyproject.toml`で`project.version`を繰り上げてタグをpushします。 
 
