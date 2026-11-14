@@ -11,18 +11,15 @@ from pathlib import Path
 from fontTools.fontBuilder import FontBuilder
 from fontTools.misc.roundTools import otRound
 from fontTools.otlLib.builder import buildLookup, buildSingleSubstSubtable
-from fontTools.pens.cu2quPen import Cu2QuPen
-from fontTools.pens.pointPen import PointToSegmentPen
 from fontTools.pens.ttGlyphPen import TTGlyphPen
 from fontTools.ttLib import TTFont, newTable
 from fontTools.ttLib.tables import otTables
 from fontTools.ttLib.tables._g_l_y_f import Glyph, GlyphCoordinates
 from fontTools.ttLib.tables.ttProgram import Program
-from fontTools.ufoLib.glifLib import readGlyphFromString
 
 from .embolden import embolden
 from .fetch import BIZ_NUMBERS, BIZ_SUBSETS, ensure_inputs
-from .paths import CONFIG, DIST, INPUT, LICENSES, ZERO
+from .paths import CONFIG, DIST, INPUT, LICENSES
 
 FAMILY = "Back"
 STYLES = {"Regular": 400, "Bold": 700, "Italic": 400, "BoldItalic": 700}
@@ -68,6 +65,41 @@ def centered(src, name, scale, shift, width):
     glyph.program.fromBytecode(b"")
     glyph.recalcBounds(table)
     return glyph, glyph.xMin
+
+
+def slash_zero(glyf, name):
+    """Drop Hack's center dot and cross the bowl with a matching slash."""
+    source = glyf[name]
+    points, ends, flags = source.getCoordinates(glyf)
+    # Hack's zero is bowl, counter, dot; keep the first two.
+    ring_end = ends[1] + 1
+    ring = points[:ring_end]
+    counter = points[ends[0] + 1 : ring_end]
+    inner_left, inner_right = min(x for x, _ in counter), max(x for x, _ in counter)
+    inner_bottom, inner_top = min(y for _, y in counter), max(y for _, y in counter)
+    y0 = inner_bottom + 0.13 * (inner_top - inner_bottom)
+    y1 = inner_top - 0.13 * (inner_top - inner_bottom)
+    center_x = (inner_left + inner_right) / 2
+    # Lean the slash diagonally, but keep its band to a third of the counter
+    # so it reads as a line rather than filling the bowl at bold weights.
+    dx = 0.68 * (y1 - y0) / 2
+    half_band = 0.17 * (inner_right - inner_left)
+    corners = (
+        (center_x - dx - half_band, y0),
+        (center_x + dx - half_band, y1),
+        (center_x + dx + half_band, y1),
+        (center_x - dx + half_band, y0),
+    )
+    glyph = Glyph()
+    glyph.numberOfContours = 3
+    glyph.coordinates = GlyphCoordinates(
+        [tuple(p) for p in ring] + [(otRound(x), otRound(y)) for x, y in corners]
+    )
+    glyph.endPtsOfContours = [ends[0], ends[1], ring_end + 3]
+    glyph.flags = bytearray(flags[:ring_end]) + bytearray([1] * 4)
+    glyph.program = Program()
+    glyph.program.fromBytecode(b"")
+    return glyph
 
 
 def add_nerd_icons(font, cmap, half):
@@ -202,13 +234,10 @@ def build_face(
         glyf = font["glyf"]
         metrics = font["hmtx"].metrics
         if zero_style in ("slash", "feature"):
-            pen = TTGlyphPen(None)
-            point_pen = PointToSegmentPen(Cu2QuPen(pen, max_err=0.5))
-            readGlyphFromString((ZERO / f"{style}.glif").read_bytes(), object(), pointPen=point_pen)
             original = cmap[ord("0")]
             name = "zero.slash" if zero_style == "feature" else original
             metrics[name] = metrics[original]
-            glyf[name] = pen.glyph()
+            glyf[name] = slash_zero(glyf, original)
             glyf[name].flags[0] |= 0x40  # OVERLAP_SIMPLE: slash intersects the bowl.
             glyf[name].recalcBounds(glyf)
             if glyf[name].xMin != metrics[name][1]:

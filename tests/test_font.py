@@ -74,6 +74,9 @@ class FontTests(unittest.TestCase):
                         continue
                     if tag in base:
                         self.assertEqual(base.reader[tag], out.reader[tag], tag)
+                if CFG.get("zero_style") == "feature":
+                    ends = out["glyf"]["zero.slash"].endPtsOfContours
+                    self.assertEqual(ends[2] - ends[1], 4)  # A slash quad, not the dot.
                 slash = CFG.get("zero_style") == "slash"
                 for n in base.getGlyphOrder():
                     self.assertEqual(base["hmtx"][n], out["hmtx"][n], n)
