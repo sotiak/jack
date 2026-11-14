@@ -7,11 +7,12 @@ import unittest
 from fontTools.ttLib import TTFont
 from PIL import Image, ImageDraw, ImageFont
 
-from jack.build import FAMILY, INPUT, STYLES, source_paths
+from jack.build import FAMILY, INPUT, STYLES, font_revision, project_version, source_paths
 from jack.paths import CONFIG, DIST
 from jack.specimen import specimen as render_specimen
 
 CFG = tomllib.loads(CONFIG.read_text())
+VERSION = project_version()
 ROWS = [
     ("const 合計 = 配列[0] + 42;", 26),
     ("if (値 != 0) { return 値; }", 27),
@@ -128,7 +129,12 @@ class FontTests(unittest.TestCase):
                 names = out["name"]
                 self.assertEqual(names.getDebugName(1), FAMILY)
                 self.assertEqual(names.getDebugName(2), base["name"].getDebugName(2))
+                self.assertEqual(names.getDebugName(3), f"{VERSION};Back-{style}")
+                self.assertEqual(names.getDebugName(5), f"Version {VERSION}")
                 self.assertEqual(names.getDebugName(6), f"Back-{style}")
+                self.assertAlmostEqual(
+                    out["head"].fontRevision, font_revision(VERSION), delta=0.5 / 65536
+                )
                 self.assertEqual(out["OS/2"].usWeightClass, weight)
                 self.assertEqual(bool(out["head"].macStyle & 1), weight == 700)
                 self.assertEqual(bool(out["OS/2"].fsSelection & 32), weight == 700)

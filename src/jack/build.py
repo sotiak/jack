@@ -2,6 +2,7 @@
 
 import math
 import os
+import re
 import shutil
 import tempfile
 import tomllib
@@ -19,10 +20,27 @@ from fontTools.ttLib.tables.ttProgram import Program
 
 from .embolden import embolden
 from .fetch import BIZ_NUMBERS, BIZ_SUBSETS, ensure_inputs
-from .paths import CONFIG, DIST, INPUT, LICENSES
+from .paths import CONFIG, DIST, INPUT, LICENSES, PYPROJECT
 
 FAMILY = "Back"
 STYLES = {"Regular": 400, "Bold": 700, "Italic": 400, "BoldItalic": 700}
+
+
+def project_version():
+    """Return the release version advertised by the generated fonts."""
+    version = tomllib.loads(PYPROJECT.read_text())["project"]["version"]
+    font_revision(version)
+    return version
+
+
+def font_revision(version):
+    if not re.fullmatch(r"(0|[1-9][0-9]*)\.(0|[1-9][0-9]?)\.(0|[1-9][0-9]?)", version):
+        raise ValueError("Version must be MAJOR.MINOR.PATCH with minor and patch in 0..99")
+    major, minor, patch = map(int, version.split("."))
+    if major > 32767:
+        raise ValueError("Version major must be in 0..32767 for head.fontRevision")
+    # Four decimal places keep each release distinct after 16.16 fixed-point rounding.
+    return major + minor / 100 + patch / 10000
 
 
 def source_paths(style):
@@ -134,7 +152,7 @@ def add_nerd_icons(font, cmap, half):
         return donor["name"].getDebugName(0)
 
 
-def set_names(font, style, donor_notice):
+def set_names(font, style, donor_notice, version):
     names = newTable("name")
     names.names = []
     copyright_text = font["name"].getDebugName(0) + "\n" + donor_notice
@@ -144,9 +162,9 @@ def set_names(font, style, donor_notice):
         0: copyright_text,
         1: FAMILY,
         2: label,
-        3: f"1.000;Back-{style}",
+        3: f"{version};Back-{style}",
         4: f"{FAMILY} {label}",
-        5: "Version 1.000",
+        5: f"Version {version}",
         6: f"Back-{style}",
         13: terms,
         14: "https://openfontlicense.org/",
@@ -156,7 +174,7 @@ def set_names(font, style, donor_notice):
     for key, value in values.items():
         names.setName(value, key, 3, 1, 0x409)
     font["name"] = names
-    font["head"].fontRevision = 1.0
+    font["head"].fontRevision = font_revision(version)
 
 
 def space_marker(half, em, style):
@@ -225,6 +243,8 @@ def build_face(
     bold_strength=0,
     regular_strength=0,
     italic_strength=0,
+    *,
+    version,
 ):
     with TTFont(INPUT / f"Hack-{style}.ttf", recalcTimestamp=False) as font:
         cmap = dict(font.getBestCmap())
@@ -324,7 +344,7 @@ def build_face(
             if glyph.numberOfContours:
                 os2.usWinAscent = max(os2.usWinAscent, glyph.yMax)
                 os2.usWinDescent = max(os2.usWinDescent, -glyph.yMin)
-        set_names(font, style, "\n".join(sorted(notices)))
+        set_names(font, style, "\n".join(sorted(notices)), version)
         if nerd_icons:
             terms = font["name"].getDebugName(13)
             terms += "\nNerd Fonts 3.3.0: see accompanying nerd/ licenses and attributions."
@@ -370,6 +390,7 @@ def main():
     if type(italic_strength) is not int or not 0 <= italic_strength <= 48:
         raise ValueError("japanese_italic_strength must be an integer from 0 to 48")
     out = DIST
+    version = project_version()
     out.mkdir(exist_ok=True)
     with tempfile.TemporaryDirectory(dir=out) as tmp:
         for style in STYLES:
@@ -385,6 +406,7 @@ def main():
                 strength,
                 regular_strength,
                 italic_strength,
+                version=version,
             )
         for path in sorted(Path(tmp).glob("*.ttf")):
             os.replace(path, out / path.name)

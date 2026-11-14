@@ -29,14 +29,18 @@ jobs:
       - name: Install dependencies
         run: nix develop --command uv sync --locked
 
-      - name: Lint
-        run: nix develop --command uv run --locked ruff check .
+      - name: Verify tag matches version
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          version=$(nix develop --command uv run --locked python -c \
+            'from jack.build import project_version; print(project_version())')
+          if [ "${GITHUB_REF_NAME#v}" != "$version" ]; then
+            echo "::error::Tag ${GITHUB_REF_NAME} does not match pyproject version ${version}"
+            exit 1
+          fi
 
-      - name: Check formatting
-        run: nix develop --command uv run --locked ruff format --check .
-
-      - name: Type check
-        run: nix develop --command uv run --locked ty check
+      - name: Format, lint, and type check
+        run: nix develop --command pre-commit run --all-files
 
       - name: Build fonts
         run: nix develop --command uv run --locked build
