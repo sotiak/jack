@@ -1,9 +1,11 @@
 name: CI
 
 on:
-  pull_request:
   push:
     branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -11,43 +13,92 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v7
-      - uses: cachix/install-nix-action@v31
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@75c75c31ebece974e48ebc36b4ad125bd97bd97b # 31.11.3
         with:
           extra_nix_config: |
             experimental-features = nix-command flakes
-      - run: nix develop --command uv sync --locked
-      - run: nix develop --command uv run --locked ruff check .
-      - run: nix develop --command uv run --locked ruff format --check .
-      - run: nix develop --command uv run --locked ty check
-      - run: nix develop --command uv run --locked jack
-      - run: nix develop --command uv run --locked pytest
-      - uses: actions/upload-artifact@v7
+
+      - name: Install dependencies
+        run: nix develop --command uv sync --locked
+
+      - name: Lint
+        run: nix develop --command uv run --locked ruff check .
+
+      - name: Check formatting
+        run: nix develop --command uv run --locked ruff format --check .
+
+      - name: Type check
+        run: nix develop --command uv run --locked ty check
+
+      - name: Build fonts
+        run: nix develop --command uv run --locked jack
+
+      - name: Test
+        run: nix develop --command uv run --locked pytest
+
+      # Renovate PRs may legitimately change the generated fonts before the
+      # update-outputs job refreshes output.sha256.
+      - name: Verify output checksums
+        if: github.actor != 'renovate[bot]'
+        run: sha256sum -c output.sha256
+
+      - name: Upload font previews
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: font-previews
           path: dist/*.png
           if-no-files-found: error
+          retention-days: 7
+
+      - name: Upload dist
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: dist
+          path: dist/
+          if-no-files-found: error
+          retention-days: 7
 
   update-outputs:
     needs: test
     if: >-
       github.event_name == 'pull_request' &&
       startsWith(github.head_ref, 'renovate/') &&
-      github.actor == 'renovate[bot]'
+      github.actor == 'renovate[bot]' &&
+      github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v7
+      - name: Checkout pull request branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.head_ref }}
-      - uses: cachix/install-nix-action@v31
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@75c75c31ebece974e48ebc36b4ad125bd97bd97b # 31.11.3
         with:
           extra_nix_config: |
             experimental-features = nix-command flakes
-      - run: nix develop --command uv sync --locked
-      - run: nix develop --command uv run --locked jack
+
+      - name: Install dependencies
+        run: nix develop --command uv sync --locked
+
+      - name: Build fonts
+        run: nix develop --command uv run --locked jack
+
+      - name: Regenerate previews
+        run: nix develop --command uv run --locked pytest
+
       - name: Commit generated font outputs
         run: |
           sha256sum \
@@ -65,3 +116,29 @@ jobs:
             git commit -m "Update font outputs"
             git push origin "HEAD:${GITHUB_HEAD_REF}"
           fi
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Download dist
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: dist
+          path: dist
+
+      - name: Create release archive
+        run: |
+          cd dist
+          sha256sum Back-*.ttf > SHA256SUMS
+          zip -r "../Back-${GITHUB_REF_NAME}.zip" .
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: gh release create "$GITHUB_REF_NAME" "Back-${GITHUB_REF_NAME}.zip" --generate-notes --verify-tag
