@@ -20,7 +20,7 @@ from fontTools.ttLib.tables.ttProgram import Program
 
 from .embolden import embolden
 from .fetch import BIZ_NUMBERS, BIZ_SUBSETS, ensure_inputs
-from .paths import CONFIG, DIST, INPUT, LICENSES, PYPROJECT
+from .paths import CONFIG, DIST, INPUT, LICENSE, LICENSES, PYPROJECT
 
 FAMILY = "Jack"
 STYLES = {"Regular": 400, "Bold": 700, "Italic": 400, "BoldItalic": 700}
@@ -414,6 +414,7 @@ def main():
             )
         for path in sorted(Path(tmp).glob("*.ttf")):
             os.replace(path, out / path.name)
+    shutil.copyfile(LICENSE, out / LICENSE.name)
     for path in LICENSES.iterdir():
         if path.is_dir():
             shutil.copytree(path, out / path.name, dirs_exist_ok=True)

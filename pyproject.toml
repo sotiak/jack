@@ -3,6 +3,8 @@ name = "jack"
 version = "0.1.2"
 description = "Build the Jack programming font from Hack and BIZ UD Gothic."
 readme = "README.md"
+license = "OFL-1.1"
+license-files = ["LICENSE"]
 authors = [
     { name = "sotiak", email = "35842766+sotiak@users.noreply.github.com" }
 ]
