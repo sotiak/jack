@@ -1,7 +1,7 @@
 [project]
 name = "jack"
-version = "0.1.0"
-description = "Build the Back programming font from Hack and BIZ UD Gothic."
+version = "0.1.1"
+description = "Build the Jack programming font from Hack and BIZ UD Gothic."
 readme = "README.md"
 authors = [
     { name = "sotiak", email = "35842766+sotiak@users.noreply.github.com" }

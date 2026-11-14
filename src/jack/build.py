@@ -22,7 +22,7 @@ from .embolden import embolden
 from .fetch import BIZ_NUMBERS, BIZ_SUBSETS, ensure_inputs
 from .paths import CONFIG, DIST, INPUT, LICENSES, PYPROJECT
 
-FAMILY = "Back"
+FAMILY = "Jack"
 STYLES = {"Regular": 400, "Bold": 700, "Italic": 400, "BoldItalic": 700}
 
 
@@ -121,7 +121,7 @@ def slash_zero(glyf, name):
 
 
 def add_nerd_icons(font, cmap, half):
-    """Fit the symbols-only donor's PUA outlines in a single Back cell."""
+    """Fit the symbols-only donor's PUA outlines in a single Jack cell."""
     with TTFont(INPUT / "NerdSymbols.ttf") as donor:
         for cp, name in sorted(donor.getBestCmap().items()):
             if cp in cmap or unicodedata.category(chr(cp)) != "Co":
@@ -162,10 +162,10 @@ def set_names(font, style, donor_notice, version):
         0: copyright_text,
         1: FAMILY,
         2: label,
-        3: f"{version};Back-{style}",
+        3: f"{version};Jack-{style}",
         4: f"{FAMILY} {label}",
         5: f"Version {version}",
-        6: f"Back-{style}",
+        6: f"Jack-{style}",
         13: terms,
         14: "https://openfontlicense.org/",
         16: FAMILY,
@@ -396,7 +396,7 @@ def main():
         for style in STYLES:
             build_face(
                 style,
-                Path(tmp) / f"Back-{style}.ttf",
+                Path(tmp) / f"Jack-{style}.ttf",
                 scale,
                 shift,
                 visible,

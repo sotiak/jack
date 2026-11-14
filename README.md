@@ -1,6 +1,6 @@
-# Back
+# Jack
 
-Hack + BIZ UDゴシック font.
+Jack (Japanese Hack) is a programming font combining Hack and BIZ UD Gothic.
 
 ## Development
 

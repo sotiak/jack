@@ -31,7 +31,7 @@ class Sheet:
         self.draw = ImageDraw.Draw(self.image)
 
     def text(self, x, y, text, size, style="Regular", color=INK, path=None, features=None):
-        path = path or DIST / f"Back-{style}.ttf"
+        path = path or DIST / f"Jack-{style}.ttf"
         missing = {ch for ch in text if ord(ch) not in coverage(path)}
         if missing:
             raise ValueError(f"{path.name}: missing {missing}")
@@ -60,7 +60,7 @@ class Sheet:
 
 def specimen():
     page = Sheet(960, 920)
-    page.text(32, 15, "Back", 52, "Bold")
+    page.text(32, 15, "Jack", 52, "Bold")
     page.text(32, 87, "和欧混植とプログラミングの書体見本", 18, color=MUTED)
     page.rule(126)
     for i, (style, line) in enumerate(
@@ -116,7 +116,7 @@ def compare(original, style="Regular"):
     for i, size in enumerate((14, 16, 20)):
         top = 111 + i * 144
         sheet.rule(top)
-        for x, source in ((32, original), (574, DIST / f"Back-{style}.ttf")):
+        for x, source in ((32, original), (574, DIST / f"Jack-{style}.ttf")):
             sheet.text(x, top + 8, f"{size} px", 13, color=MUTED)
             lines = (
                 "return 値; // 議事録と鍵の照合",

@@ -27,7 +27,7 @@ def test_serialized_versions_increase():
             revision = saved["head"].fontRevision
             assert revision == pytest.approx(expected, abs=0.5 / 65536, rel=0)
             assert revision > previous
-            assert saved["name"].getDebugName(3) == f"{version};Back-Regular"
+            assert saved["name"].getDebugName(3) == f"{version};Jack-Regular"
             assert saved["name"].getDebugName(5) == f"Version {version}"
             previous = revision
 

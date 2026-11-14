@@ -1,5 +1,5 @@
 {
-  description = "Back font build environment";
+  description = "Jack font build environment";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
