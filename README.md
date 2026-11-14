@@ -2,6 +2,8 @@
 
 Jack (Japanese Hack) is a programming font combining Hack and BIZ UD Gothic.
 
+![Jack font specimen showing Japanese and Latin text, code, and font styles](assets/specimen.png)
+
 ## Development
 
 - Runtime, system library: Nix
