@@ -7,7 +7,7 @@ from jack.paths import CONFIG
 @pytest.mark.parametrize(
     ("old", "new", "message"),
     [
-        ("scale = 1.0", "scale = 0.0", "japanese.scale"),
+        ("scale = 1.06", "scale = 0.0", "japanese.scale"),
         (
             "visible_fullwidth_space = true",
             "visible_fullwidth_space = 1",
