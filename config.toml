@@ -2,9 +2,9 @@
 scale = 1.0  # 入力と出力のUPM比で換算。1.0が原寸
 baseline_shift = 0  # Hackのフォント単位。正の値で上へ移動
 italic_degrees = 8  # Italic・Bold Italicの日本語。0で立体
-regular_strength = 12  # Regularの日本語だけに適用。0で元の太さ
-bold_strength = 16  # 日本語太字の画線に加える幅。0で元の太さ
-italic_strength = 8  # Italicの日本語だけに適用。0で従来の太さ
+regular_strength = 24  # Regularの日本語だけに適用。0で元の太さ
+bold_strength = 24  # 日本語太字の画線に加える幅。0で元の太さ
+italic_strength = 24  # Italicの日本語だけに適用。0で従来の太さ
 
 [glyphs]
 visible_fullwidth_space = true  # U+3000の既定表示。ss20で反転

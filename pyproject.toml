@@ -1,6 +1,6 @@
 [project]
 name = "jack"
-version = "0.1.1"
+version = "0.1.2"
 description = "Build the Jack programming font from Hack and BIZ UD Gothic."
 readme = "README.md"
 authors = [

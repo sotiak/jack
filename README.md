@@ -11,6 +11,8 @@ Jackは、HackとBIZ UDゴシックを組み合わせたプログラミング用
 - Nerd Fontsのアイコンに対応しています。
 - OpenTypeのzeroでゼロを斜線付きに、ss20で全角スペースを非表示に切り替えられます。
 
+![BIZ UDゴシック原寸（Before）とJackの日本語ウェイト（After）を並べた比較](.github/images/weight.png)
+
 ## Showcase
 
 ![READMEのMarkdownをJackで表示した画像](.github/images/readme.png)
