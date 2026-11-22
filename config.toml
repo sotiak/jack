@@ -1,12 +1,11 @@
 [japanese]
-scale = 1.06  # 入力と出力のUPM比で換算。1.0が原寸
-baseline_shift = 0  # Hackのフォント単位。正の値で上へ移動
-italic_degrees = 8  # Italic・Bold Italicの日本語。0で立体
-regular_strength = 14  # Regularの日本語だけに適用。0で元の太さ
-bold_strength = 10  # 日本語太字の画線に加える幅。0で元の太さ
-italic_strength = 14  # Italicの日本語だけに適用。0で従来の太さ
+scale = 1.03  # 入力と出力のUPM比で換算。1.0が原寸
+baseline_shift = 0  # Iosevkaのフォント単位。正の値で上へ移動
+italic_degrees = 9  # Italic・Bold Italicの日本語。0で立体
+regular_strength = 0  # Regularの日本語だけに適用。0で元の太さ
+bold_strength = 0  # 日本語太字の画線に加える幅。0で元の太さ
+italic_strength = 0  # Italicの日本語だけに適用。0で従来の太さ
 
 [glyphs]
 visible_fullwidth_space = true  # U+3000の既定表示。ss20で反転
 nerd_icons = true  # 私用領域のアイコンを半角1セルで追加
-zero_style = "feature"  # 標準はドット、OpenType zeroでスラッシュ

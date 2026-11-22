@@ -95,7 +95,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 -----------------------------------------------------------
 Third-party notices
 
-Jack is built from Hack (Copyright 2018 Source Foundry Authors, MIT License) and
-BIZ UD Gothic (Copyright 2022 The BIZ UDGothic Project Authors, SIL Open Font
-License 1.1), and includes patched Nerd Fonts glyphs. The full notices are in
-assets/licenses/ and are embedded in the generated fonts.
+Sotiak Mono is based on Iosevka (Copyright 2015-2026 Renzhi Li, SIL Open Font
+License 1.1) and BIZ UD Gothic (Copyright 2022 The BIZ UDGothic Project Authors,
+SIL Open Font License 1.1), and includes patched Nerd Fonts glyphs. The full
+notices are in assets/licenses/ and are embedded in the generated fonts.

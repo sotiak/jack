@@ -1,1 +1,1 @@
-"""Build the Jack programming font from Hack and BIZ UD Gothic."""
+"""Build the Sotiak Mono programming font based on Iosevka and BIZ UD Gothic."""

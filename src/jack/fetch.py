@@ -4,7 +4,6 @@ import base64
 import hashlib
 import json
 import shutil
-import tarfile
 import tempfile
 import tomllib
 import urllib.request
@@ -14,24 +13,27 @@ from pathlib import Path
 
 from .paths import INPUT, SOURCES
 
-HACK_STYLES = ("Regular", "Italic", "Bold", "BoldItalic")
-BIZ_WEIGHTS = (400, 700)
-BIZ_NUMBERS = range(120)
-BIZ_SUBSETS = ("latin", "latin-ext", "cyrillic", "greek-ext")
+IOSEVKA_STYLES = {
+    "Regular": "Extended",
+    "Bold": "ExtendedBold",
+    "Italic": "ExtendedOblique",
+    "BoldItalic": "ExtendedBoldOblique",
+}
+IOSEVKA_ITALIC_STYLES = {
+    "Italic": "ExtendedItalic",
+    "BoldItalic": "ExtendedBoldItalic",
+}
+BIZ_STYLES = {400: "Regular", 700: "Bold"}
+ZEROPROTO = "0xProto-Italic.ttf"
 
 
 def _expected_files() -> set[str]:
-    files = {f"Hack-{style}.ttf" for style in HACK_STYLES} | {"NerdSymbols.ttf"}
-    files.update(
-        f"biz-udgothic-{number}-{weight}-normal.woff"
-        for number in BIZ_NUMBERS
-        for weight in BIZ_WEIGHTS
-    )
-    files.update(
-        f"biz-udgothic-{subset}-{weight}-normal.woff"
-        for subset in BIZ_SUBSETS
-        for weight in BIZ_WEIGHTS
-    )
+    files = {f"Iosevka-{style}.ttf" for style in IOSEVKA_STYLES} | {
+        "NerdSymbols.ttf",
+        ZEROPROTO,
+    }
+    files.update(f"Iosevka-{style}True.ttf" for style in IOSEVKA_ITALIC_STYLES)
+    files.update(f"BIZUDGothic-{style}.ttf" for style in BIZ_STYLES.values())
     return files
 
 
@@ -85,34 +87,27 @@ def _download(url: str, dest: Path, source: Mapping[str, str]) -> None:
     _verify_digest(dest, source)
 
 
-def _fetch_hack(source: Mapping[str, str], tmp: Path, staging: Path) -> None:
-    archive = tmp / "Hack-v3.003-ttf.zip"
+def _fetch_iosevka(source: Mapping[str, str], tmp: Path, staging: Path) -> None:
+    archive = tmp / "IosevkaSS03-ttf.zip"
     _download(source["url"].format_map(source), archive, source)
     with zipfile.ZipFile(archive) as files:
-        for style in HACK_STYLES:
-            name = f"Hack-{style}.ttf"
-            (staging / name).write_bytes(files.read(f"ttf/{name}"))
+        for style, source_style in IOSEVKA_STYLES.items():
+            (staging / f"Iosevka-{style}.ttf").write_bytes(
+                files.read(f"IosevkaSS03-{source_style}.ttf")
+            )
+        for style, source_style in IOSEVKA_ITALIC_STYLES.items():
+            (staging / f"Iosevka-{style}True.ttf").write_bytes(
+                files.read(f"IosevkaSS03-{source_style}.ttf")
+            )
 
 
 def _fetch_biz(source: Mapping[str, str], tmp: Path, staging: Path) -> None:
-    archive = tmp / "biz-udgothic.tgz"
+    archive = tmp / "BIZUDGothic.zip"
     _download(source["url"].format_map(source), archive, source)
-    expected = _expected_files()
-    with tarfile.open(archive) as files:
-        for member in files.getmembers():
-            name = Path(member.name).name
-            if not member.isfile() or not member.name.startswith("package/files/"):
-                continue
-            if name not in expected:
-                if name.endswith(".woff") and name not in {
-                    f"biz-udgothic-japanese-{weight}-normal.woff" for weight in BIZ_WEIGHTS
-                }:
-                    raise ValueError(f"Unexpected BIZ WOFF file: {member.name}")
-                continue
-            extracted = files.extractfile(member)
-            if extracted is None:
-                raise ValueError(f"Cannot read {member.name}")
-            (staging / name).write_bytes(extracted.read())
+    with zipfile.ZipFile(archive) as files:
+        for style in BIZ_STYLES.values():
+            name = f"BIZUDGothic-{style}.ttf"
+            (staging / name).write_bytes(files.read(name))
 
 
 def _fetch_nerd(source: Mapping[str, str], tmp: Path, staging: Path) -> None:
@@ -120,6 +115,13 @@ def _fetch_nerd(source: Mapping[str, str], tmp: Path, staging: Path) -> None:
     _download(source["url"].format_map(source), archive, source)
     with zipfile.ZipFile(archive) as files:
         (staging / "NerdSymbols.ttf").write_bytes(files.read("SymbolsNerdFont-Regular.ttf"))
+
+
+def _fetch_zeroxproto(source: Mapping[str, str], tmp: Path, staging: Path) -> None:
+    archive = tmp / "0xProto.zip"
+    _download(source["url"], archive, source)
+    with zipfile.ZipFile(archive) as files:
+        (staging / ZEROPROTO).write_bytes(files.read("fonts/0xProto-Italic.ttf"))
 
 
 def fetch_inputs(force: bool = False) -> None:
@@ -135,9 +137,10 @@ def fetch_inputs(force: bool = False) -> None:
         tmp = Path(tmp_name)
         staging = tmp / "inputs"
         staging.mkdir()
-        _fetch_hack(sources["hack"], tmp, staging)
+        _fetch_iosevka(sources["iosevka"], tmp, staging)
         _fetch_biz(sources["biz"], tmp, staging)
         _fetch_nerd(sources["nerd"], tmp, staging)
+        _fetch_zeroxproto(sources["zeroxproto"], tmp, staging)
         (staging / ".lock").write_text(_source_digest(sources) + "\n")
         verify_inputs(staging)
         if INPUT.exists():

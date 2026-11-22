@@ -1,10 +1,12 @@
 """Render editable, three-times-resolution specimens directly from the built fonts."""
 
+import re
 from functools import lru_cache
 
 from fontTools.ttLib import TTFont
 from PIL import Image, ImageDraw, ImageFont
 
+from jack.build import FILE_PREFIX
 from jack.paths import DIST, IMAGES
 
 SCALE = 3
@@ -30,7 +32,7 @@ class Sheet:
         self.draw = ImageDraw.Draw(self.image)
 
     def text(self, x, y, text, size, style="Regular", color=INK, path=None, features=None):
-        path = path or DIST / f"Jack-{style}.ttf"
+        path = path or DIST / f"{FILE_PREFIX}-{style}.ttf"
         missing = {ch for ch in text if ord(ch) not in coverage(path)}
         if missing:
             raise ValueError(f"{path.name}: missing {missing}")
@@ -59,26 +61,29 @@ class Sheet:
 
 
 BODY = (
-    "Sherlock Holmesにとって、彼女はいつでも“the woman”だった。"
-    "彼が彼女を別の名前で呼ぶのを、私はほとんど聞いたことがない。"
-    "彼の目には、Irene Adlerという女性が、ほかのすべての女性を霞ませていた。"
-    "しかし、それはloveに似た感情を抱いていたからではない。"
-    "冷静で精緻な、そして見事に均衡の取れた彼の精神は、そのような感情を何よりも嫌っていた。"
+    "吾輩はCatである。Nameはまだない。どこでBornしたかとんとMemoryにない。"
+    "何でも薄暗いPlaceでニャーニャーCryしていたことだけはRememberしている。"
+    "吾輩はここで初めてHumanなるものをSeeした。"
+    "しかもあとでHearすると、それは書生というHumanの中で一番DangerousなSpeciesであったそうだ。"
+    "書生というのは時々我々をCatchしてBoilしてEatするというStoryである。"
+    "まったくWhat a terrible Worldであろう。"
 )
 
 
 def specimen():
-    page = Sheet(960, 660)
-    page.text(32, 15, "Jack", 52, "Bold")
+    page = Sheet(960, 820)
+    page.text(32, 15, "Sotiak Mono", 52, "Bold")
     page.rule(97)
-    font = face(DIST / "Jack-Regular.ttf", 21)
+    font = face(DIST / f"{FILE_PREFIX}-Regular.ttf", 21)
     cell = font.getlength("0")
     columns = int(896 * SCALE // cell)
     lines = [""]
-    for ch in BODY:
-        if round(font.getlength(lines[-1] + ch) / cell) > columns:
+    # Keep Latin words whole; Japanese can break between characters.
+    for token in re.findall(r"[A-Za-z]+(?:['’][A-Za-z]+)*\s*|.", BODY):
+        if lines[-1] and round(font.getlength(lines[-1] + token) / cell) > columns:
             lines.append("")
-        lines[-1] += ch
+            token = token.lstrip()
+        lines[-1] += token
     top = 115
     for i in range(columns + 1):
         x = 32 * SCALE + i * cell
@@ -97,18 +102,26 @@ def specimen():
     y += 4 * 36 + 8
     page.rule(y)
     y += 16
-    page.text(32, y, "Jack OpenType Features", 24, "Bold")
+    page.text(32, y, "Sotiak Mono OpenType Features", 24, "Bold")
     y += 44
-    page.text(32, y, "features", 15, color=MUTED)
-    page.text(400, y, "default", 15, color=MUTED)
-    page.text(660, y, "active", 15, color=MUTED)
+    page.text(32, y, "setting", 15, color=MUTED)
+    page.text(150, y, "effect", 15, color=MUTED)
+    page.text(520, y, "default", 15, color=MUTED)
+    page.text(720, y, "changed", 15, color=MUTED)
     y += 26
-    for i, (tag, sample) in enumerate((("zero", "0 O ０  0x0F"), ("ss20", "日　本"))):
+    features = (
+        ("calt", "余白を調整する", "filming im ml", ["calt"], ["-calt"], "Regular"),
+        ("ss01", "0xProtoスクリプト体", "fklrsoO", ["-ss01"], ["ss01"], "Italic"),
+        ("ss19", "合字を有効にする", "-> <- == != ||", ["-ss19"], ["ss19"], "Regular"),
+        ("ss20", "全角スペースを非表示にする", "日　本", ["-ss20"], ["ss20"], "Regular"),
+    )
+    for i, (tag, effect, sample, default_features, changed_features, style) in enumerate(features):
         row = y + i * 64
         page.rule(row)
         page.text(32, row + 16, tag, 20, "Bold")
-        page.text(400, row + 13, sample, 23, features=[f"-{tag}"])
-        page.text(660, row + 13, sample, 23, color="#5e6ad2", features=[tag])
+        page.text(150, row + 20, effect, 16, color=MUTED)
+        page.text(500, row + 13, sample, 24, style, features=default_features)
+        page.text(720, row + 13, sample, 24, style, color="#0f766e", features=changed_features)
     page.save("specimen.png")
 
 

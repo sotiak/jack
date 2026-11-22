@@ -3,7 +3,7 @@ from io import BytesIO
 import pytest
 from fontTools.ttLib import TTFont
 
-from jack.build import font_revision, set_names
+from jack.build import FILE_PREFIX, font_revision, set_names
 from jack.paths import INPUT
 
 
@@ -18,7 +18,7 @@ def test_serialized_versions_increase():
         ("2.0.0", 2.0),
         ("32767.99.99", 32767.9999),
     ):
-        with TTFont(INPUT / "Hack-Regular.ttf") as font:
+        with TTFont(INPUT / "Iosevka-Regular.ttf") as font:
             set_names(font, "Regular", "test", version)
             data = BytesIO()
             font.save(data)
@@ -27,8 +27,8 @@ def test_serialized_versions_increase():
             revision = saved["head"].fontRevision
             assert revision == pytest.approx(expected, abs=0.5 / 65536, rel=0)
             assert revision > previous
-            assert saved["name"].getDebugName(3) == f"{version};Jack-Regular"
-            assert saved["name"].getDebugName(5) == f"Version {version}"
+            assert saved["name"].getDebugName(3) == f"{version};{FILE_PREFIX}-Regular"
+            assert saved["name"].getDebugName(5) == f"Version {font_revision(version):.4f}"
             previous = revision
 
 

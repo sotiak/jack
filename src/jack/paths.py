@@ -1,4 +1,4 @@
-"""Project and asset locations for the Jack font build."""
+"""Project and asset locations for the Sotiak Mono font build."""
 
 from pathlib import Path
 

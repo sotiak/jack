@@ -1,17 +1,25 @@
 # Pinned third-party inputs for the build.
 # Downloads are digest-verified; .lock identifies the input configuration.
 
-[hack]
-tag = "v3.003"
-sha256 = "0c2604631b1f055041c68a0e09ae4801acab6c5072ba2db6a822f53c3f8290ac"
-url = "https://github.com/source-foundry/Hack/releases/download/{tag}/Hack-{tag}-ttf.zip"
+# The release tag is v34.9.1 but the asset name omits the v, so Renovate
+# cannot update this block automatically.
+[iosevka]
+version = "34.9.1"
+sha256 = "cbc7e758dc5ae49d88b77aad4997e226c8462c700c1bf86832fa7ac33b4c5077"
+url = "https://github.com/be5invis/Iosevka/releases/download/v{version}/PkgTTF-IosevkaSS03-{version}.zip"
 
 [biz]
-version = "5.3.0"
-integrity = "sha512-1jccDNmjsrgfxXa4MiBQzvhg+z8McslunaiSUl3OWB9QrUYzbp88tD78soiwqp2U5ZFXG/BvBT1Rhgd6tOgGwQ=="
-url = "https://registry.npmjs.org/@fontsource/biz-udgothic/-/biz-udgothic-{version}.tgz"
+tag = "v1.051"
+sha256 = "30692df621b92df13b88f1360aed1ab6ae50de441bce751a396c6439045cd759"
+url = "https://github.com/googlefonts/morisawa-biz-ud-gothic/releases/download/{tag}/BIZUDGothic.zip"
 
 [nerd]
 tag = "v3.3.0"
 sha256 = "2078603c1e7a2fc2fa9e625ba1c30264d5d7c39907813d89beaa373f73a3a340"
 url = "https://github.com/ryanoasis/nerd-fonts/releases/download/{tag}/NerdFontsSymbolsOnly.zip"
+
+# The ss01 glyphs are adapted from 0xProto's italic Script Variant.
+[zeroxproto]
+tag = "2.502"
+sha256 = "402d046b6056111ae5b974892fe2d6d921c66a64681980ec81db051de05851e7"
+url = "https://github.com/0xType/0xProto/releases/download/2.502/0xProto_2_502.zip"

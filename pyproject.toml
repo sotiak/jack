@@ -1,7 +1,7 @@
 [project]
 name = "jack"
 version = "0.1.4"
-description = "Build the Jack programming font from Hack and BIZ UD Gothic."
+description = "Build the Sotiak Mono programming font based on Iosevka and BIZ UD Gothic."
 readme = "README.md"
 license = "OFL-1.1"
 license-files = ["LICENSE"]

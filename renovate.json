@@ -6,26 +6,15 @@
   "customManagers": [
     {
       "customType": "regex",
-      "description": "Hack release zip",
+      "description": "BIZ UD Gothic release zip",
       "managerFilePatterns": ["/^assets\\/sources\\.toml$/"],
       "matchStrings": [
-        "\\[hack\\]\\ntag = \"(?<currentValue>[^\"]+)\"\\nsha256 = \"(?<currentDigest>[a-f0-9]{64})\""
+        "\\[biz\\]\\ntag = \"(?<currentValue>[^\"]+)\"\\nsha256 = \"(?<currentDigest>[a-f0-9]{64})\""
       ],
-      "autoReplaceStringTemplate": "[hack]\ntag = \"{{{newValue}}}\"\nsha256 = \"{{{newDigest}}}\"",
+      "autoReplaceStringTemplate": "[biz]\ntag = \"{{{newValue}}}\"\nsha256 = \"{{{newDigest}}}\"",
       "datasourceTemplate": "github-release-attachments",
-      "depNameTemplate": "source-foundry/Hack",
+      "depNameTemplate": "googlefonts/morisawa-biz-ud-gothic",
       "versioningTemplate": "loose"
-    },
-    {
-      "customType": "regex",
-      "description": "BIZ UD Gothic npm tarball",
-      "managerFilePatterns": ["/^assets\\/sources\\.toml$/"],
-      "matchStrings": [
-        "\\[biz\\]\\nversion = \"(?<currentValue>[^\"]+)\"\\nintegrity = \"(?<currentDigest>[^\"]+)\""
-      ],
-      "autoReplaceStringTemplate": "[biz]\nversion = \"{{{newValue}}}\"\nintegrity = \"{{{newDigest}}}\"",
-      "datasourceTemplate": "npm",
-      "depNameTemplate": "@fontsource/biz-udgothic"
     },
     {
       "customType": "regex",
