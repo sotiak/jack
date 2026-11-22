@@ -27,8 +27,6 @@
       let
         pkgs = nixpkgs.legacyPackages.${system};
         python = pkgs.python314;
-        fontName = "Sotiak Mono";
-        fontStem = builtins.replaceStrings [ " " ] [ "" ] fontName;
         formatter =
           (treefmt-nix.lib.evalModule pkgs {
             projectRootFile = "flake.nix";
@@ -82,43 +80,13 @@
             program = "${
               pkgs.writeShellApplication {
                 name = "capture-showcase";
-                excludeShellChecks = [ "SC2016" ];
                 runtimeInputs = [
-                  pkgs.charm-freeze
-                  pkgs.librsvg
-                  pkgs.fontconfig
-                  pkgs.coreutils
-                  pkgs.bash
+                  pkgs.uv
+                  pkgs.chromium
                 ];
                 text = ''
-                  [ -f dist/${fontStem}-Regular.ttf ] || {
-                    echo "dist/${fontStem}-Regular.ttf not found; run uv run build first" >&2
-                    exit 1
-                  }
-                  mkdir -p .github/images
-                  work=$(mktemp -d)
-                  trap 'rm -rf "$work"' EXIT
-
-                  cat >"$work/fonts.conf" <<EOF
-                  <?xml version="1.0"?>
-                  <!DOCTYPE fontconfig SYSTEM "fonts.dtd">
-                  <fontconfig>
-                    <dir>$PWD/dist</dir>
-                    <cachedir>$work/fonts</cachedir>
-                  </fontconfig>
-                  EOF
-                  export FONTCONFIG_FILE="$work/fonts.conf"
-                  fc-cache -f >/dev/null
-
-                  freeze README.md --lines 1,18 --wrap 72 \
-                    --font.family "${fontName}" --font.size 12 \
-                    --theme github --background "#ffffff" --padding 16 \
-                    -o .github/images/readme.png
-
-                  freeze scripts/logo.txt \
-                    --font.family "${fontName}" --font.size 22 \
-                    --background "#ffffff" --padding 28 --theme github \
-                    -o .github/images/logo.png
+                  uv run site
+                  uv run screenshots
                 '';
               }
             }/bin/capture-showcase";
@@ -133,6 +101,7 @@
             pkgs.nil
             pkgs.nixd
             pkgs.ttfautohint
+            pkgs.chromium
           ];
 
           # Pillow's wheel uses zlib and loads libfribidi for Raqm text layout.

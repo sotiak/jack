@@ -1,23 +1,32 @@
-# Jack
+# Sotiak Mono
 
-Jackは、HackとBIZ UDゴシックを組み合わせたプログラミング用フォントです。
+Sotiak Monoは、IosevkaをベースにBIZ UDゴシックを組み合わせた、Nerd Fonts対応のプログラミング用フォントです。
 
-![日本語、英数字、コード、各スタイル、OpenType機能を並べたJackのspecimen](.github/images/specimen.png)
-
-## Features
-
-- Hack本来の字形を維持し、半角文字と全角文字の幅を1:2にしています。
-- Hackのウェイトに合わせて、BIZ UDゴシックのウェイトを調整しています。
-- Nerd Fontsのアイコンに対応しています。
-- OpenTypeのzeroでゼロを斜線付きに、ss20で全角スペースを非表示に切り替えられます。
-
-![BIZ UDゴシック原寸（Before）とJackの日本語ウェイト（After）を並べた比較](.github/images/weight.png)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset=".github/images/specimen-hero-dark.png">
+  <img src=".github/images/specimen-hero-light.png" alt="Sotiak Monoの和文・欧文の見本" width="880">
+</picture>
 
 ## Showcase
 
-![READMEのMarkdownをJackで表示した画像](.github/images/readme.png)
+[書体見本サイト](https://sotiak.github.io/jack/) / [PDF（A4・4ページ）](https://sotiak.github.io/jack/specimen.pdf) / [HTMLソース](site/index.html)。Iosevka SS03との比較、字形の設計、代表文字を掲載しています。
 
-![Jackのロゴと、HackとBIZ UDゴシック、Nerd FontsからJackができる様子を文字絵で描いた画像](.github/images/logo.png)
+[Texture Healingデモ](https://sotiak.github.io/jack/#texture)では、`calt` の分割比較、差分オーバーレイ、テキスト入力、スイープを操作できます。
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset=".github/images/specimen-weights-dark.png">
+  <img src=".github/images/specimen-weights-light.png" alt="4スタイルと半角1対全角2のグリッド" width="880">
+</picture>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset=".github/images/specimen-design-dark.png">
+  <img src=".github/images/specimen-design-light.png" alt="r・g・j・W/w・t・Mの輪郭と設計" width="880">
+</picture>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset=".github/images/specimen-features-dark.png">
+  <img src=".github/images/specimen-features-light.png" alt="calt・ss01・ss19・ss20とTexture Healingの有効・無効比較" width="880">
+</picture>
 
 ## Development
 
@@ -31,12 +40,12 @@ direnv allow   # or run; nix develop
 uv sync
 ```
 
-### Build / Testing
+### Build / Test
 
 ```sh
 uv run build
 uv run pytest
-nix fmt
+uv run fontbakery check-universal --skip-network --no-progress --configuration fontbakery.toml -j dist/SotiakMono-*.ttf
 ```
 
 ### Build configuration
@@ -49,4 +58,4 @@ nix fmt
 
 ## ライセンス
 
-SIL Open Font License 1.1.
+SIL Open Font License 1.1。Iosevka、BIZ UDゴシック、Nerd Fonts、0xProtoの帰属表示は[assets/licenses](assets/licenses)にあります。

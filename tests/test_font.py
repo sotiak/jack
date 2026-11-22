@@ -1,4 +1,4 @@
-"""Integration tests on the four serialized faces; also write the mixed-text specimen."""
+"""Integration tests on the four serialized faces."""
 
 import tempfile
 import tomllib
@@ -22,7 +22,6 @@ from jack.build import (
     source_paths,
 )
 from jack.paths import CONFIG, DIST
-from scripts.specimen import specimen as render_specimen
 
 CFG = tomllib.loads(CONFIG.read_text())
 JP = CFG["japanese"]
@@ -444,7 +443,6 @@ class FontTests(unittest.TestCase):
                 ImageDraw.Draw(sheet).text((200, 12 + i * 311), sample, font=raster, fill="#15232b")
             for line in ("日本語", "ｶﾅ", "Ａ０"):
                 self.assertTrue(raster.getmask(line).getbbox())
-        render_specimen()
 
     def test_opentype_specimen_features(self):
         raster = ImageFont.truetype(

@@ -27,9 +27,10 @@ from fontTools.ttLib.tables._g_l_y_f import Glyph, GlyphCoordinates
 from fontTools.ttLib.tables.ttProgram import Program
 
 from .embolden import embolden
-from .fetch import BIZ_STYLES, IOSEVKA_ITALIC_STYLES, ZEROPROTO, ensure_inputs
+from .fetch import BIZ_STYLES, IOSEVKA_ITALIC_STYLES, ensure_inputs
+from .glyphs import VARIANTS
 from .paths import CONFIG, DIST, INPUT, LICENSE, LICENSES, PYPROJECT
-from .variants import J_SHIFT, SERIF_LEFTS, VARIANTS
+from .script_variants import SCRIPT_VARIANTS
 
 FAMILY = "Sotiak Mono"
 FILE_PREFIX = "SotiakMono"
@@ -84,6 +85,16 @@ TEXTURE_STATIONARY = (
 )
 SCRIPT_CHARS = "fklrsoO"
 SCRIPT_STRENGTH = 30  # Approximates Iosevka's Regular-to-Bold stem gain at 1000 UPM.
+# Top-serif left edges for i/j and their dotless forms: (Iosevka x, Sotiak Mono x).
+# The dotless forms are used by accented composites.
+SERIF_LEFTS = {
+    "Regular": {"i": (115, 99), "j": (162, 74), "ı": (115, 99), "ȷ": (162, 74)},
+    "Bold": {"i": (115, 99), "j": (162, 74), "ı": (115, 99), "ȷ": (162, 74)},
+    "Italic": {"i": (137, 121), "j": (184, 96), "ı": (137, 121), "ȷ": (184, 96)},
+    "BoldItalic": {"i": (135, 119), "j": (182, 94), "ı": (135, 119), "ȷ": (182, 94)},
+}
+# Upright j is shifted right to balance the cell; matches JetBrains Mono's right edge.
+J_SHIFT = {"Regular": 31, "Bold": 31}
 LIGATURES = (
     "***",
     "**",
@@ -179,25 +190,33 @@ def advance(cp, original, em, half):
     return 2 * half if original > em / 2 else half
 
 
+def make_glyph(points, ends, flags):
+    """Build an unhinted simple glyph; ttfautohint restores hints afterwards."""
+    glyph = Glyph()
+    glyph.numberOfContours = len(ends)
+    glyph.coordinates = GlyphCoordinates(points)
+    glyph.endPtsOfContours = list(ends)
+    glyph.flags = bytearray(flags)
+    glyph.program = Program()
+    glyph.program.fromBytecode(b"")
+    return glyph
+
+
 def centered(src, name, scale, shift, width):
     # Flatten components before the transform so IDs and hint programs do not
     # refer back to the donor font. Center the source advance box (punctuation
     # intentionally has asymmetric ink and bearings).
     table = src["glyf"]
     points, ends, flags = table[name].getCoordinates(table)
-    glyph = Glyph()
     if not ends:
-        return glyph, 0
+        return Glyph(), 0
     old_width = src["hmtx"][name][0]
     offset = (width - old_width * scale) / 2
-    glyph.numberOfContours = len(ends)
-    glyph.coordinates = GlyphCoordinates(
-        (otRound(x * scale + offset), otRound(y * scale + shift)) for x, y in points
+    glyph = make_glyph(
+        ((otRound(x * scale + offset), otRound(y * scale + shift)) for x, y in points),
+        ends,
+        flags,
     )
-    glyph.endPtsOfContours = list(ends)
-    glyph.flags = bytearray(flags)
-    glyph.program = Program()
-    glyph.program.fromBytecode(b"")
     glyph.recalcBounds(table)
     return glyph, glyph.xMin
 
@@ -241,13 +260,7 @@ def copy_true_italic(font, style, cmap):
             target = cmap[ord(char)]
             source = donor_cmap[ord(char)]
             points, ends, flags = donor["glyf"][source].getCoordinates(donor["glyf"])
-            glyph = Glyph()
-            glyph.numberOfContours = len(ends)
-            glyph.coordinates = GlyphCoordinates(points)
-            glyph.endPtsOfContours = list(ends)
-            glyph.flags = bytearray(flags)
-            glyph.program = Program()
-            glyph.program.fromBytecode(b"")
+            glyph = make_glyph(points, ends, flags)
             glyph.recalcBounds(font["glyf"])
             normalize_overlap(glyph)
             advance, lsb = donor["hmtx"][source]
@@ -276,13 +289,7 @@ def copy_single_storey_g(font, style, cmap):
         left = min(x for x, _ in unslanted)
         right = max(x for x, _ in unslanted)
         dx = otRound((advance - left - right) / 2)
-        glyph = Glyph()
-        glyph.numberOfContours = len(ends)
-        glyph.coordinates = GlyphCoordinates((x + dx, y) for x, y in unslanted)
-        glyph.endPtsOfContours = list(ends)
-        glyph.flags = bytearray(flags)
-        glyph.program = Program()
-        glyph.program.fromBytecode(b"")
+        glyph = make_glyph(((x + dx, y) for x, y in unslanted), ends, flags)
         glyph.recalcBounds(font["glyf"])
         normalize_overlap(glyph)
         font["glyf"][target] = glyph
@@ -297,13 +304,7 @@ def copy_rounded_w(font, style, cmap):
     for char in ("W", "w"):
         target = cmap[ord(char)]
         spec = variants[char]
-        glyph = Glyph()
-        glyph.numberOfContours = len(spec["ends"])
-        glyph.coordinates = GlyphCoordinates(spec["points"])
-        glyph.endPtsOfContours = list(spec["ends"])
-        glyph.flags = bytearray(spec["flags"])
-        glyph.program = Program()
-        glyph.program.fromBytecode(b"")
+        glyph = make_glyph(spec["points"], spec["ends"], spec["flags"])
         glyph.recalcBounds(font["glyf"])
         normalize_overlap(glyph)
         if spec["advance"] != font["hmtx"][target][0]:
@@ -318,13 +319,7 @@ def copy_flat_t(font, style, cmap):
     """Use Iosevka's cv54-8 t with a flat hook and short neck."""
     spec = VARIANTS[style]["t"]
     target = cmap[ord("t")]
-    glyph = Glyph()
-    glyph.numberOfContours = len(spec["ends"])
-    glyph.coordinates = GlyphCoordinates(spec["points"])
-    glyph.endPtsOfContours = list(spec["ends"])
-    glyph.flags = bytearray(spec["flags"])
-    glyph.program = Program()
-    glyph.program.fromBytecode(b"")
+    glyph = make_glyph(spec["points"], spec["ends"], spec["flags"])
     glyph.recalcBounds(font["glyf"])
     normalize_overlap(glyph)
     if spec["advance"] != font["hmtx"][target][0]:
@@ -338,13 +333,7 @@ def copy_hanging_m(font, style, cmap):
     """Use Iosevka's cv23-1 M with a hanging serifless middle."""
     spec = VARIANTS[style]["M"]
     target = cmap[ord("M")]
-    glyph = Glyph()
-    glyph.numberOfContours = len(spec["ends"])
-    glyph.coordinates = GlyphCoordinates(spec["points"])
-    glyph.endPtsOfContours = list(spec["ends"])
-    glyph.flags = bytearray(spec["flags"])
-    glyph.program = Program()
-    glyph.program.fromBytecode(b"")
+    glyph = make_glyph(spec["points"], spec["ends"], spec["flags"])
     glyph.recalcBounds(font["glyf"])
     normalize_overlap(glyph)
     if spec["advance"] != font["hmtx"][target][0]:
@@ -358,13 +347,7 @@ def widen_r(font, style, cmap):
     """Widen the lowercase r by 13% around the cell center."""
     target = cmap[ord("r")]
     points, ends, flags = font["glyf"][target].getCoordinates(font["glyf"])
-    glyph = Glyph()
-    glyph.numberOfContours = len(ends)
-    glyph.coordinates = GlyphCoordinates((otRound(300 + (x - 300) * 1.13), y) for x, y in points)
-    glyph.endPtsOfContours = list(ends)
-    glyph.flags = bytearray(flags)
-    glyph.program = Program()
-    glyph.program.fromBytecode(b"")
+    glyph = make_glyph(((otRound(300 + (x - 300) * 1.13), y) for x, y in points), ends, flags)
     glyph.recalcBounds(font["glyf"])
     normalize_overlap(glyph)
     advance = font["hmtx"][target][0]
@@ -381,13 +364,7 @@ def lengthen_ij_serifs(font, style, cmap):
         moved = sum(1 for x, _ in points if x == old)
         if moved != 2:
             raise ValueError(f"{style}: expected 2 serif points on {char}, found {moved}")
-        glyph = Glyph()
-        glyph.numberOfContours = len(ends)
-        glyph.coordinates = GlyphCoordinates((new if x == old else x, y) for x, y in points)
-        glyph.endPtsOfContours = list(ends)
-        glyph.flags = bytearray(flags)
-        glyph.program = Program()
-        glyph.program.fromBytecode(b"")
+        glyph = make_glyph(((new if x == old else x, y) for x, y in points), ends, flags)
         glyph.recalcBounds(font["glyf"])
         advance = font["hmtx"][target][0]
         font["glyf"][target] = glyph
@@ -403,13 +380,7 @@ def shift_j(font, style, cmap):
     roots = {cmap[ord("j")], cmap[0x0237]}
     for target in roots:
         points, ends, flags = font["glyf"][target].getCoordinates(font["glyf"])
-        glyph = Glyph()
-        glyph.numberOfContours = len(ends)
-        glyph.coordinates = GlyphCoordinates((x + dx, y) for x, y in points)
-        glyph.endPtsOfContours = list(ends)
-        glyph.flags = bytearray(flags)
-        glyph.program = Program()
-        glyph.program.fromBytecode(b"")
+        glyph = make_glyph(((x + dx, y) for x, y in points), ends, flags)
         glyph.recalcBounds(font["glyf"])
         advance = font["hmtx"][target][0]
         font["glyf"][target] = glyph
@@ -626,13 +597,7 @@ def add_spacing_ligatures(font, cmap):
             ends.extend(count + end for end in part_ends)
             flags.extend(part_flags)
             count += len(part_points)
-        glyph = Glyph()
-        glyph.numberOfContours = len(ends)
-        glyph.coordinates = GlyphCoordinates(points)
-        glyph.endPtsOfContours = ends
-        glyph.flags = bytearray(flags)
-        glyph.program = Program()
-        glyph.program.fromBytecode(b"")
+        glyph = make_glyph(points, ends, flags)
         glyph.recalcBounds(glyf)
         normalize_overlap(glyph)
         name = "lig." + "_".join(names)
@@ -660,57 +625,42 @@ def add_script_variants(font, style, cmap):
     half = metrics[cmap[32]][0]
     margin = otRound(half * 0.04)
     strength = SCRIPT_STRENGTH if style == "BoldItalic" else 0
-    with TTFont(INPUT / ZEROPROTO) as donor:
-        donor_cmap = donor.getBestCmap()
-        donor_glyf = donor["glyf"]
-        ours = {}
-        theirs = {}
-        for char in ("o", "O"):
-            glyph = glyf[cmap[ord(char)]]
+    ours = {}
+    for char in ("o", "O"):
+        glyph = glyf[cmap[ord(char)]]
+        glyph.recalcBounds(glyf)
+        ours[char] = glyph.yMax
+    mapping = {}
+    added = []
+    for char in SCRIPT_CHARS:
+        spec = SCRIPT_VARIANTS[char]
+        points, ends, flags = spec["points"], spec["ends"], spec["flags"]
+        scale_x = half / spec["advance"]
+        scale_y = ours["O"] / spec["ymax"] if char == "O" else ours["o"] / spec["ymax"]
+        points = [(x * scale_x, y * scale_y) for x, y in points]
+        xmin = min(x for x, _ in points)
+        xmax = max(x for x, _ in points)
+        room = half - 2 * margin - strength
+        if xmax - xmin > room:
+            fit = room / (xmax - xmin)
+            points = [(x * fit, y) for x, y in points]
+            xmin *= fit
+            xmax *= fit
+        shift = (half - xmin - xmax) / 2
+        glyph = make_glyph(((otRound(x + shift), otRound(y)) for x, y in points), ends, flags)
+        glyph.recalcBounds(glyf)
+        if strength:
+            embolden(glyph, strength)
             glyph.recalcBounds(glyf)
-            ours[char] = glyph.yMax
-            glyph = donor_glyf[donor_cmap[ord(char)] + ".ss01"]
-            glyph.recalcBounds(donor_glyf)
-            theirs[char] = glyph.yMax
-        mapping = {}
-        added = []
-        for char in SCRIPT_CHARS:
-            source = donor_cmap[ord(char)] + ".ss01"
-            points, ends, flags = donor_glyf[source].getCoordinates(donor_glyf)
-            scale_x = half / donor["hmtx"][source][0]
-            scale_y = ours["O"] / theirs["O"] if char == "O" else ours["o"] / theirs["o"]
-            points = [(x * scale_x, y * scale_y) for x, y in points]
-            xmin = min(x for x, _ in points)
-            xmax = max(x for x, _ in points)
-            room = half - 2 * margin - strength
-            if xmax - xmin > room:
-                fit = room / (xmax - xmin)
-                points = [(x * fit, y) for x, y in points]
-                xmin *= fit
-                xmax *= fit
-            shift = (half - xmin - xmax) / 2
-            glyph = Glyph()
-            glyph.numberOfContours = len(ends)
-            glyph.coordinates = GlyphCoordinates(
-                (otRound(x + shift), otRound(y)) for x, y in points
-            )
-            glyph.endPtsOfContours = list(ends)
-            glyph.flags = bytearray(flags)
-            glyph.program = Program()
-            glyph.program.fromBytecode(b"")
+            dx = otRound((half - glyph.xMin - glyph.xMax) / 2)
+            glyph.coordinates.translate((dx, 0))
             glyph.recalcBounds(glyf)
-            if strength:
-                embolden(glyph, strength)
-                glyph.recalcBounds(glyf)
-                dx = otRound((half - glyph.xMin - glyph.xMax) / 2)
-                glyph.coordinates.translate((dx, 0))
-                glyph.recalcBounds(glyf)
-            normalize_overlap(glyph)
-            name = f"{char}.ss01"
-            glyf[name] = glyph
-            metrics[name] = (half, glyph.xMin)
-            mapping[cmap[ord(char)]] = name
-            added.append(name)
+        normalize_overlap(glyph)
+        name = f"{char}.ss01"
+        glyf[name] = glyph
+        metrics[name] = (half, glyph.xMin)
+        mapping[cmap[ord(char)]] = name
+        added.append(name)
     order = list(font.getGlyphOrder())
     order.extend(name for name in added if name not in order)
     font.setGlyphOrder(order)
@@ -763,19 +713,11 @@ def sweep_gj_tails(font, style, cmap):
             tip = max(range(len(new_points)), key=lambda index: new_points[index][0])
             x_height = max(y for _, y in new_points)
             new_points[tip] = (new_points[tip][0], min(new_points[tip][1], x_height - 28))
-        glyph = Glyph()
-        glyph.numberOfContours = contours
-        glyph.coordinates = GlyphCoordinates(new_points)
         if contours == 2:
-            glyph.endPtsOfContours = [
-                len(new_points) - 1 - (ends[1] - first_end),
-                len(new_points) - 1,
-            ]
+            end_pts = [len(new_points) - 1 - (ends[1] - first_end), len(new_points) - 1]
         else:
-            glyph.endPtsOfContours = [len(new_points) - 1]
-        glyph.flags = bytearray(new_flags)
-        glyph.program = Program()
-        glyph.program.fromBytecode(b"")
+            end_pts = [len(new_points) - 1]
+        glyph = make_glyph(new_points, end_pts, new_flags)
         glyph.recalcBounds(glyf)
         normalize_overlap(glyph)
         advance = font["hmtx"][target][0]
@@ -823,13 +765,7 @@ def add_texture_healing(font):
                 moved.append((x - offset if side < 0 else x + offset, y))
         else:
             moved = list(points)
-        glyph = Glyph()
-        glyph.numberOfContours = len(ends)
-        glyph.coordinates = GlyphCoordinates(moved)
-        glyph.endPtsOfContours = list(ends)
-        glyph.flags = bytearray(flags)
-        glyph.program = Program()
-        glyph.program.fromBytecode(b"")
+        glyph = make_glyph(moved, ends, flags)
         glyph.recalcBounds(glyf)
         normalize_overlap(glyph)
         name = base + suffix

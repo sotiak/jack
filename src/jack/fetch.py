@@ -24,14 +24,10 @@ IOSEVKA_ITALIC_STYLES = {
     "BoldItalic": "ExtendedBoldItalic",
 }
 BIZ_STYLES = {400: "Regular", 700: "Bold"}
-ZEROPROTO = "0xProto-Italic.ttf"
 
 
 def _expected_files() -> set[str]:
-    files = {f"Iosevka-{style}.ttf" for style in IOSEVKA_STYLES} | {
-        "NerdSymbols.ttf",
-        ZEROPROTO,
-    }
+    files = {f"Iosevka-{style}.ttf" for style in IOSEVKA_STYLES} | {"NerdSymbols.ttf"}
     files.update(f"Iosevka-{style}True.ttf" for style in IOSEVKA_ITALIC_STYLES)
     files.update(f"BIZUDGothic-{style}.ttf" for style in BIZ_STYLES.values())
     return files
@@ -117,13 +113,6 @@ def _fetch_nerd(source: Mapping[str, str], tmp: Path, staging: Path) -> None:
         (staging / "NerdSymbols.ttf").write_bytes(files.read("SymbolsNerdFont-Regular.ttf"))
 
 
-def _fetch_zeroxproto(source: Mapping[str, str], tmp: Path, staging: Path) -> None:
-    archive = tmp / "0xProto.zip"
-    _download(source["url"], archive, source)
-    with zipfile.ZipFile(archive) as files:
-        (staging / ZEROPROTO).write_bytes(files.read("fonts/0xProto-Italic.ttf"))
-
-
 def fetch_inputs(force: bool = False) -> None:
     if not force:
         try:
@@ -140,7 +129,6 @@ def fetch_inputs(force: bool = False) -> None:
         _fetch_iosevka(sources["iosevka"], tmp, staging)
         _fetch_biz(sources["biz"], tmp, staging)
         _fetch_nerd(sources["nerd"], tmp, staging)
-        _fetch_zeroxproto(sources["zeroxproto"], tmp, staging)
         (staging / ".lock").write_text(_source_digest(sources) + "\n")
         verify_inputs(staging)
         if INPUT.exists():

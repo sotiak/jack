@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Sotiak Mono — 日本語対応の等幅フォント</title>
+  <meta name="description" content="IosevkaとBIZ UDゴシックから作った、日本語対応の等幅フォント。字形、4スタイル、OpenType機能を試せます。">
+  <script>
+    try {
+      const theme = new URLSearchParams(location.search).get('theme') || localStorage.getItem('theme');
+      if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme;
+    } catch {}
+  </script>
+  <link rel="stylesheet" href="fonts.css">
+  <link rel="stylesheet" href="style.css">
+  <script src="site.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#overview">本文へ</a>
+<header>
+  <a href="#overview">Sotiak Mono</a>
+  <nav aria-label="外部リンクと表示設定">
+    <a href="https://github.com/sotiak/jack">GitHub</a>
+    <a href="#download">ダウンロード</a>
+    <button id="theme" type="button" hidden>配色を切り替える</button>
+  </nav>
+</header>
+<div class="layout">
+<aside>
+  <details open>
+    <summary>目次</summary>
+    <nav aria-label="目次">
+      <a href="#overview">概要</a><a href="#weights">ウェイト</a>
+      <a href="#grid">グリッド</a><a href="#compare">比較</a>
+      <a href="#design">設計</a><a href="#opentype">OpenType</a>
+      <a href="#texture">Texture Healing</a>
+      <a href="#characters">文字</a><a href="#download">ダウンロード</a>
+    </nav>
+  </details>
+</aside>
+<main>
+  <section id="overview" data-sheet="hero" class="hero">
+    <p class="eyebrow">書体見本 / {{version}}</p>
+    <h1>Sotiak Mono</h1>
+    <p class="lead">Iosevka と BIZ UDゴシックから作った、<br>日本語対応の等幅フォント。</p>
+    <p class="meta">4スタイル · 半角1 : 全角2 · SIL OFL 1.1</p>
+    <p class="hero-sample">吾輩はCatである。Nameはまだない。どこでBornしたかとんとMemoryにない。</p>
+    <p class="hero-alphabet">Aa Bb 0123456789</p>
+  </section>
+  <div data-sheet="weights" class="print-page">
+    <section id="weights">
+      <h2>ウェイト</h2>
+      <p class="caption">正体と9°の斜体。それぞれに標準・太字。</p>
+      <div class="weight-row"><span>Regular</span><p>吾輩はCatである。Nameはまだない。どこでBornしたかとんとMemoryにない。</p></div>
+      <div class="weight-row italic"><span>Italic</span><p>吾輩はCatである。Nameはまだない。どこでBornしたかとんとMemoryにない。</p></div>
+      <div class="weight-row bold"><span>Bold</span><p>吾輩はCatである。Nameはまだない。どこでBornしたかとんとMemoryにない。</p></div>
+      <div class="weight-row bold italic"><span>Bold Italic</span><p>吾輩はCatである。Nameはまだない。どこでBornしたかとんとMemoryにない。</p></div>
+    </section>
+    <section id="grid">
+      <h2>グリッド</h2>
+      <div class="cell-sample" aria-label="半角2文字と全角1文字の幅は同じ">AB日本12語<br>01あいABう</div>
+      <dl class="metrics"><div><dt>半角</dt><dd>{{half}} units</dd></div><div><dt>全角</dt><dd>{{full}} units</dd></div><div><dt>UPM</dt><dd>{{upm}}</dd></div><div><dt>幅の比率</dt><dd>1 : 2</dd></div></dl>
+    </section>
+    <section id="compare">
+      <h2>比較</h2>
+      <p class="caption">同じサイズ・同じ文字列で、Iosevka SS03と比較。</p>
+      <div class="comparison"><div><h3>Sotiak Mono</h3><p>agijr WwtM<br>0O 1Il {} []</p></div><div class="source"><h3>Iosevka SS03</h3><p>agijr WwtM<br>0O 1Il {} []</p></div></div>
+    </section>
+  </div>
+  <section id="design" data-sheet="design" class="print-page">
+    <h2>設計</h2>
+    <p class="caption">字形の細部。輪郭はビルド済みフォントから取得。</p>
+    <div class="design-grid">{{design}}</div>
+  </section>
+  <div data-sheet="features" class="print-page">
+    <section id="opentype">
+      <h2>OpenType</h2>
+      <p class="caption">チェックを切り替えて字形を比較できます。</p>
+      <div class="feature calt"><h3>calt <span>隣接する文字の余白を調整</span></h3><input id="calt" type="checkbox" checked><label for="calt">有効（既定）</label><p class="live">filming im ml</p><div class="static-pair"><div><small>無効</small><p style='font-feature-settings:"calt" 0'>filming im ml</p></div><div><small>有効（既定）</small><p style='font-feature-settings:"calt" 1'>filming im ml</p></div></div></div>
+      <div class="feature ss01"><h3>ss01 <span>斜体をスクリプト体に</span></h3><input id="ss01" type="checkbox"><label for="ss01">有効</label><p class="live italic">fklrsoO</p><div class="static-pair italic"><div><small>無効（既定）</small><p>fklrsoO</p></div><div><small>有効</small><p style='font-feature-settings:"ss01" 1'>fklrsoO</p></div></div></div>
+      <div class="feature ss19"><h3>ss19 <span>記号の間隔を詰める合字</span></h3><input id="ss19" type="checkbox"><label for="ss19">有効</label><p class="live">-&gt; &lt;- == != ||</p><div class="static-pair"><div><small>無効（既定）</small><p>-&gt; &lt;- == != ||</p></div><div><small>有効</small><p style='font-feature-settings:"ss19" 1'>-&gt; &lt;- == != ||</p></div></div></div>
+      <div class="feature ss20"><h3>ss20 <span>全角スペースの印を非表示に</span></h3><input id="ss20" type="checkbox"><label for="ss20">有効</label><p class="live">日　本</p><div class="static-pair"><div><small>無効（既定）</small><p>日　本</p></div><div><small>有効</small><p style='font-feature-settings:"ss20" 1'>日　本</p></div></div></div>
+    </section>
+    <section id="texture">
+      <h2>Texture Healing</h2>
+      <p>文字の並びに応じて字面の余白を調整します。セルの幅は変わりません。</p>
+      <div class="demo">
+        <p class="caption">英数字で試してください。見本に含まれない文字は代替フォントで表示されます。</p>
+        <div class="stage-card"><div class="legend"><span>calt off</span><span>calt on</span></div><div class="canvas"><div class="layer off">filming
+winning</div><div class="layer on" aria-hidden="true">filming
+winning</div><div class="divider" aria-hidden="true"></div></div></div>
+        <div class="controls">
+          <div class="field text-field"><label for="sample">サンプル</label><textarea id="sample" rows="2" spellcheck="false">filming
+winning</textarea></div>
+          <div class="field"><label for="reveal">分割 <output id="reveal-value" for="reveal">50%</output></label><input id="reveal" type="range" min="0" max="100" value="50" step="1"></div>
+          <div class="field"><label for="size">サイズ <output id="size-value" for="size">88px</output></label><input id="size" type="range" min="48" max="132" value="88" step="1"></div>
+          <div class="actions"><button id="sweep" type="button">スイープ</button><label><input id="diff" type="checkbox">差分を重ねる</label></div>
+          <div class="samples"><button type="button" data-sample="filming|winning">filming / winning</button><button type="button" data-sample="im|ml">im / ml</button><button type="button" data-sample="FT|fi">FT / fi</button><button type="button" data-sample="mimlm">mimlm</button></div>
+        </div>
+      </div>
+      <div class="static-pair texture-static"><div><small>calt 無効</small><p style='font-feature-settings:"calt" 0'>winning</p></div><div><small>calt 有効</small><p style='font-feature-settings:"calt" 1'>winning</p></div></div>
+    </section>
+  </div>
+  <section id="characters" class="web-only"><h2>文字</h2><p class="caption">収録{{count}}コードポイントから、代表的な文字を抜粋。</p><p class="italic">Italic / Aa Bb fklrsoO 0123456789</p>{{characters}}</section>
+  <section id="download" class="web-only"><h2>ダウンロード</h2><p><a href="https://github.com/sotiak/jack/releases/latest">GitHub Releases</a> / <a href="specimen.pdf">書体見本 PDF（A4・4ページ）</a></p><p>配布ZIPを展開し、4つのTTFをインストールしてください。</p><dl class="install"><dt>macOS</dt><dd>フォントを開き、Font Bookでインストール。</dd><dt>Windows</dt><dd>TTFを右クリックし「インストール」。</dd><dt>Linux</dt><dd>~/.local/share/fonts/ にコピーし、fc-cache -f を実行。</dd></dl><p>アプリのフォント設定で「Sotiak Mono」を選択します。</p></section>
+  <footer class="web-only"><p>Sotiak Mono / {{version}} / <a href="licenses/OFL.txt">SIL Open Font License 1.1</a></p><p><a href="licenses/Iosevka-OFL.txt">Iosevka</a> · <a href="licenses/BIZ-OFL.txt">BIZ UDゴシック</a> · <a href="licenses/nerd/LICENSE">Nerd Fonts</a> · <a href="licenses/0xProto-OFL.txt">0xProto</a></p></footer>
+</main>
+</div>
+</body>
+</html>
