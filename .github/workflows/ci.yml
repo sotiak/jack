@@ -74,11 +74,11 @@ jobs:
       - name: Create release archive
         run: |
           cd dist
-          sha256sum Jack-*.ttf > SHA256SUMS
-          zip -r "../Jack-${GITHUB_REF_NAME}.zip" .
+          sha256sum SotiakMono-*.ttf > SHA256SUMS
+          zip -r "../SotiakMono-${GITHUB_REF_NAME}.zip" .
 
       - name: Publish release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
-        run: gh release create "$GITHUB_REF_NAME" "Jack-${GITHUB_REF_NAME}.zip" --generate-notes --verify-tag
+        run: gh release create "$GITHUB_REF_NAME" "SotiakMono-${GITHUB_REF_NAME}.zip" --generate-notes --verify-tag
