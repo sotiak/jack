@@ -44,6 +44,31 @@
               includes = [ "*.py" ];
             };
           }).config.build.wrapper;
+        # Not packaged in nixpkgs; wrap the upstream release binary.
+        # Only the x86_64 Linux asset is handled here.
+        fontspector =
+          if system == "x86_64-linux" then
+            pkgs.stdenvNoCC.mkDerivation (finalAttrs: {
+              pname = "fontspector";
+              version = "1.9.1";
+              src = pkgs.fetchurl {
+                url = "https://github.com/fonttools/fontspector/releases/download/fontspector-v${finalAttrs.version}/fontspector-${finalAttrs.version}-x86_64-unknown-linux-gnu.tar.gz";
+                hash = "sha256-/5gr+/ue22DLNVEpZPuizGVg6UtJLPUD9dyXOcgXprU=";
+              };
+              nativeBuildInputs = [ pkgs.autoPatchelfHook ];
+              buildInputs = [
+                pkgs.zlib
+                pkgs.openssl
+                pkgs.stdenv.cc.cc.lib
+              ];
+              dontConfigure = true;
+              dontBuild = true;
+              installPhase = ''
+                install -Dm755 fontspector $out/bin/fontspector
+              '';
+            })
+          else
+            null;
         preCommit = git-hooks.lib.${system}.run {
           src = ./.;
           hooks = {
@@ -102,10 +127,11 @@
             pkgs.nixd
             pkgs.ttfautohint
             pkgs.chromium
-          ];
+          ]
+          ++ pkgs.lib.optional (fontspector != null) fontspector;
 
-          # Pillow's wheel uses zlib and loads libfribidi for Raqm text layout.
-          # fontbakery's compiled checks need libstdc++.
+          # Pillow's wheel uses zlib and loads libfribidi for Raqm text layout;
+          # its AVIF support needs libstdc++.
           env = {
             UV_PYTHON = "${python}/bin/python3";
             UV_PYTHON_DOWNLOADS = "never";

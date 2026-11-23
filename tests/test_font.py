@@ -19,6 +19,7 @@ from mono.build import (
     font_revision,
     normalize_overlap,
     project_version,
+    sanitize_glyph_name,
     source_paths,
 )
 from mono.paths import CONFIG, DIST
@@ -79,7 +80,9 @@ class FontTests(unittest.TestCase):
                 base_order = base.getGlyphOrder()
                 base_cmap = base.getBestCmap()
                 half = base["hmtx"][base_cmap[32]][0]
-                self.assertEqual(order[: len(base_order)], base_order)
+                self.assertEqual(
+                    order[: len(base_order)], [sanitize_glyph_name(n) for n in base_order]
+                )
                 self.assertEqual(len(order), out["maxp"].numGlyphs)
                 self.assertEqual(set(order), set(out["hmtx"].metrics))
                 self.assertEqual(out["head"].unitsPerEm, base["head"].unitsPerEm)
@@ -176,24 +179,35 @@ class FontTests(unittest.TestCase):
                         ):
                             affected.add(name)
                             changed = True
+                composites = {name for name in base_order if base["glyf"][name].isComposite()}
+                decomposed = {
+                    name
+                    for name in composites
+                    if any(c.glyphName in composites for c in base["glyf"][name].components)
+                }
+                self.assertTrue(decomposed)
                 for name in base_order:
+                    out_name = sanitize_glyph_name(name)
                     normalize_overlap(base["glyf"][name])
-                    normalize_overlap(out["glyf"][name])
+                    normalize_overlap(out["glyf"][out_name])
                     if name in affected:
-                        self.assertEqual(out["hmtx"][name][0], half, name)
+                        self.assertEqual(out["hmtx"][out_name][0], half, name)
                         if name in rebuilt:
                             self.assertNotEqual(
                                 base["glyf"][name].compile(base["glyf"]),
-                                out["glyf"][name].compile(out["glyf"]),
+                                out["glyf"][out_name].compile(out["glyf"]),
                                 name,
                             )
                     else:
-                        self.assertEqual(base["hmtx"][name], out["hmtx"][name], name)
-                        self.assertEqual(
-                            base["glyf"][name].compile(base["glyf"]),
-                            out["glyf"][name].compile(out["glyf"]),
-                            name,
-                        )
+                        self.assertEqual(base["hmtx"][name], out["hmtx"][out_name], name)
+                        if name in decomposed:
+                            self.assertFalse(out["glyf"][out_name].isComposite(), name)
+                        else:
+                            self.assertEqual(
+                                base["glyf"][name].compile(base["glyf"]),
+                                out["glyf"][out_name].compile(out["glyf"]),
+                                name,
+                            )
 
                 cmap = out.getBestCmap()
                 donor_points = set()
@@ -221,7 +235,8 @@ class FontTests(unittest.TestCase):
                     and base["hmtx"][name][0] == half
                 }
                 for cp, name in base_cmap.items():
-                    self.assertEqual(cmap[cp], f"wide{cp:04X}" if cp in widened else name, hex(cp))
+                    expected = f"wide{cp:04X}" if cp in widened else sanitize_glyph_name(name)
+                    self.assertEqual(cmap[cp], expected, hex(cp))
                 for table in out["cmap"].tables:
                     if table.format == 14:
                         for pairs in table.uvsDict.values():
@@ -250,6 +265,8 @@ class FontTests(unittest.TestCase):
                 self.assertEqual(out["head"].macStyle, base["head"].macStyle)
                 self.assertEqual(out["OS/2"].fsSelection, base["OS/2"].fsSelection)
                 self.assertEqual(out["post"].italicAngle, base["post"].italicAngle)
+                axes = [axis.AxisTag for axis in out["STAT"].table.DesignAxisRecord.Axis]
+                self.assertEqual(axes, ["wght", "ital"])
                 for cp, name in cmap.items():
                     width = out["hmtx"][name][0]
                     self.assertIn(width, (0, half, half * 2), hex(cp))
@@ -276,7 +293,7 @@ class FontTests(unittest.TestCase):
                 # Iosevka ships i and j as composites; the build flattens both.
                 hinted.update(("i", "j"))
                 for name in hinted:
-                    glyph = out["glyf"][name]
+                    glyph = out["glyf"][sanitize_glyph_name(name)]
                     if glyph.numberOfContours > 0:
                         self.assertTrue(glyph.program.getBytecode(), f"{style}: {name}")
 

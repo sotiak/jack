@@ -45,7 +45,7 @@ uv sync
 ```sh
 uv run build
 uv run pytest
-uv run fontbakery check-universal --skip-network --no-progress --configuration fontbakery.toml -j dist/SotiakMono-*.ttf
+fontspector --configuration fontbakery.toml dist/SotiakMono-*.ttf
 ```
 
 ### Build configuration

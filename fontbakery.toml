@@ -1,8 +1,8 @@
 # Universal-profile checks Sotiak Mono intentionally does not satisfy.
 exclude_checks = [
-  "base_has_width",          # U+1CEB3 is a zero-width legacy-computing overlay.
-  "nested_components",       # Iosevka's composites are nested by design.
-  "opentype/STAT/ital_axis", # Static TTFs do not ship a STAT table.
-  "valid_glyphnames",        # Iosevka's .g##### and .join-* names are kept.
-  "whitespace_ink",          # U+3000 is drawn on purpose; ss20 hides it.
+  "base_has_width", # U+1CEB3 is a zero-width legacy-computing overlay.
 ]
+
+["name/repeating_characters"]
+# The embedded OFL text keeps its decorative ---- rules and double spaces.
+name_ids_to_be_skipped = [13]

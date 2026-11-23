@@ -51,10 +51,9 @@ jobs:
       - name: Test
         run: nix develop --command uv run --locked pytest
 
-      - name: Check fonts with fontbakery
+      - name: Check fonts with fontspector
         run: >-
-          nix develop --command uv run --locked fontbakery check-universal
-          --skip-network --no-progress --configuration fontbakery.toml -j
+          nix develop --command fontspector --configuration fontbakery.toml
           dist/SotiakMono-*.ttf
 
       - name: Upload dist

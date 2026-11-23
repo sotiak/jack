@@ -15,11 +15,14 @@ from pathlib import Path
 from fontTools.feaLib.builder import addOpenTypeFeaturesFromString
 from fontTools.fontBuilder import FontBuilder
 from fontTools.misc.roundTools import otRound
+from fontTools.misc.transform import Identity
 from fontTools.otlLib.builder import (
     buildLigatureSubstSubtable,
     buildLookup,
     buildSingleSubstSubtable,
+    buildStatTable,
 )
+from fontTools.pens.transformPen import TransformPen
 from fontTools.pens.ttGlyphPen import TTGlyphPen
 from fontTools.ttLib import TTFont, newTable
 from fontTools.ttLib.tables import otTables
@@ -455,6 +458,77 @@ def set_names(font, style, donor_notice, version):
         names.setName(value, key, 3, 1, 0x409)
     font["name"] = names
     font["head"].fontRevision = font_revision(version)
+
+
+def flatten_glyph(name, glyf, pen, transform=Identity):
+    """Draw a glyph into pen with its component references resolved."""
+    glyph = glyf[name]
+    if glyph.isComposite():
+        for component in glyph.components:
+            component_name, component_transform = component.getComponentInfo()
+            flatten_glyph(component_name, glyf, pen, transform.transform(component_transform))
+    else:
+        glyph.draw(TransformPen(pen, transform), glyf)
+
+
+def decompose_nested_components(glyf):
+    """Flatten composites that point at other composites, which some renderers mishandle."""
+    # glyf iterates integer keys, so spell out .keys() for the glyph names.
+    composites = {name for name in glyf.keys() if glyf[name].isComposite()}  # noqa: SIM118
+    for name in list(glyf.keys()):
+        glyph = glyf[name]
+        if glyph.isComposite() and any(c.glyphName in composites for c in glyph.components):
+            pen = TTGlyphPen(None)
+            flatten_glyph(name, glyf, pen)
+            glyf[name] = pen.glyph()
+            glyf[name].recalcBounds(glyf)
+
+
+def sanitize_glyph_name(name):
+    """Return a PostScript-safe name as recommended by Microsoft's OpenType spec."""
+    if name in {".notdef", ".null"} or name.startswith(".ttfautohint"):
+        return name
+    if name == "nonbreakingspace":
+        return "uni00A0"
+    name = name.lstrip(".").replace("-", "_")
+    if not (name[0].isascii() and (name[0].isalpha() or name[0] == "_")):
+        name = f"g{name}"
+    return name
+
+
+def set_glyph_names(font):
+    """Rename glyphs in the post table so PDF and PostScript accept them."""
+    post = font["post"]
+    seen = set()
+    for name in font.getGlyphOrder():
+        safe = sanitize_glyph_name(name)
+        if safe in seen:
+            raise ValueError(f"Glyph name collision: {name} -> {safe}")
+        seen.add(safe)
+        if safe != name:
+            post.mapping[name] = safe
+
+
+def add_stat(font, style):
+    """Describe weight and italic relationships in a STAT table."""
+    weight = STYLES[style]
+    weight_value = {"value": weight, "name": "Regular" if weight == 400 else "Bold"}
+    if weight == 400:
+        weight_value["flags"] = 0x2  # ELIDABLE_AXIS_VALUE_NAME
+    if "Italic" in style:
+        ital_value = {"value": 1, "name": "Italic"}
+    else:
+        # Roman links to the italic value, as the naming spec expects for statics.
+        ital_value = {"value": 0, "name": "Roman", "flags": 0x2, "linkedValue": 1.0}
+    buildStatTable(
+        font,
+        [
+            {"tag": "wght", "name": "Weight", "ordering": 0, "values": [weight_value]},
+            {"tag": "ital", "name": "Italic", "ordering": 1, "values": [ital_value]},
+        ],
+        elidedFallbackName="Regular",
+        macNames=False,
+    )
 
 
 def space_marker(half, em, style):
@@ -970,6 +1044,7 @@ def build_face(
         metrics[blank] = (2 * half, 0)
         cmap[0x3000] = name if visible_space else blank
         add_substitution_feature(font, "ss20", cmap[0x3000], blank if visible_space else name)
+        decompose_nested_components(glyf)
         font.setGlyphOrder(list(glyf.glyphOrder))
         uvs = [(cp, sel, name) for (cp, sel), name in sorted(variations.items())]
         FontBuilder(font=font).setupCharacterMap(cmap, uvs=uvs, allowFallback=True)
@@ -988,6 +1063,7 @@ def build_face(
             terms = font["name"].getDebugName(13)
             terms += "\nNerd Fonts 3.3.0: see accompanying nerd/ licenses and attributions."
             font["name"].setName(terms, 13, 3, 1, 0x409)
+        add_stat(font, style)
         for tag in ("DSIG", "TTFA"):
             if tag in font:
                 del font[tag]
@@ -1127,7 +1203,12 @@ def main():
         for style in STYLES:
             restore_hints(Path(tmp) / f"{FILE_PREFIX}-{style}.ttf", style)
         for path in faces:
-            os.replace(path, out / path.name)
+            # Rename after hinting so ttfautohint and the hint merge keep Iosevka's names.
+            with TTFont(path, recalcTimestamp=False) as font:
+                set_glyph_names(font)
+                named = path.with_suffix(".named")
+                font.save(named)
+            os.replace(named, out / path.name)
     shutil.copyfile(LICENSE, out / LICENSE.name)
     for path in LICENSES.iterdir():
         if path.is_dir():
