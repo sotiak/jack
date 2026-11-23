@@ -178,9 +178,6 @@ def build_site():
             )
         values = {
             "version": project_version(),
-            "half": str(font["hmtx"][cmap[ord("A")]][0]),
-            "full": str(font["hmtx"][cmap[ord("日")]][0]),
-            "upm": str(font["head"].unitsPerEm),
             "design": render_design(font, italic),
             "alignment": render_alignment(font, italic),
             "characters": "\n".join(groups),

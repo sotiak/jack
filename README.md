@@ -12,11 +12,6 @@ Sotiak Monoは、IosevkaをベースにBIZ UDゴシックを組み合わせた�
 [書体見本サイト](https://sotiak.github.io/mono/) / [HTMLソース](site/index.html)。Iosevka SS03 / JetBrains Mono / Consolasとの比較、字形の設計、代表文字を掲載しています。
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset=".github/images/specimen-grid-dark.png">
-  <img src=".github/images/specimen-grid-light.png" alt="半角1対全角2のグリッド" width="880">
-</picture>
-
-<picture>
   <source media="(prefers-color-scheme: dark)" srcset=".github/images/specimen-design-dark.png">
   <img src=".github/images/specimen-design-light.png" alt="ftijの横棒のそろいと、r・g・j・W/w・t・Mの輪郭" width="880">
 </picture>

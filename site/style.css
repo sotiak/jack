@@ -147,28 +147,16 @@ section h2 {
 h3 { font-size: 14px; font-weight: 400; }
 .caption, small, dt { color: var(--muted); font-size: 11px; }
 .caption { margin-bottom: 20px; line-height: 1.6; }
-.lead { margin-bottom: 12px; font-size: 18px; line-height: 1.75; }
-.italic { font-style: italic; }
-.cell-sample {
-  width: max-content;
-  max-width: 100%;
-  padding: 4px 0;
-  font-size: clamp(24px, 4vw, 38px);
-  line-height: 1.7;
+.lead {
+  margin-bottom: 12px;
+  padding: 6px 0;
+  font-size: 18px;
+  line-height: 1.75;
   background:
     repeating-linear-gradient(to right, var(--line) 0 1px, transparent 1px 1ch),
-    repeating-linear-gradient(to bottom, var(--grid) 0 1px, transparent 1px 1.7em);
+    repeating-linear-gradient(to bottom, var(--grid) 0 1px, transparent 1px 1.75em);
 }
-.metrics {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  margin: 24px 0 0;
-  border: 1px solid var(--line);
-}
-.metrics div { padding: 10px 12px; border-right: 1px solid var(--line); }
-.metrics div:last-child { border-right: 0; }
-.metrics dt { font-size: 10px; letter-spacing: .06em; }
-.metrics dd { margin: 2px 0 0; font-size: 18px; }
+.italic { font-style: italic; }
 .compare-stage { border: 1px solid var(--line); overflow: hidden; }
 .compare-labels {
   display: flex;
@@ -426,7 +414,7 @@ input[type="checkbox"]:checked { background: var(--ink); box-shadow: inset 0 0 0
 .character-group[data-width="1"] { --char-width: 1; }
 #characters[data-weight="bold"] .characters { font-weight: 700; }
 footer { padding: 32px 0; color: var(--muted); font-size: 11px; }
-html[data-italic] :is(.cell-sample, .feature .live, .static-pair p, .characters) { font-style: italic; }
+html[data-italic] :is(.feature .live, .static-pair p, .characters) { font-style: italic; }
 @media screen and (max-width: 860px) {
   header { flex-wrap: wrap; padding: 0 20px; }
   header > a { padding: 12px 0; }
@@ -441,9 +429,6 @@ html[data-italic] :is(.cell-sample, .feature .live, .static-pair p, .characters)
   aside details { position: static; }
   aside nav { grid-template-columns: 1fr 1fr; }
   aside a { padding-right: 8px; }
-  .metrics { grid-template-columns: 1fr 1fr; }
-  .metrics div:nth-child(2n) { border-right: 0; }
-  .metrics div:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
   .design-grid { grid-template-columns: 1fr; }
   .design-card { border-right: 0; border-bottom: 1px solid var(--line); }
   .design-card:last-child { border-bottom: 0; }
@@ -456,15 +441,12 @@ html[data-poster] body { width: 880px; }
 html[data-poster] header, html[data-poster] aside, html[data-poster] .web-only, html[data-poster] .skip { display: none; }
 html[data-poster] .layout { display: block; width: 880px; max-width: none; padding: 40px 48px; }
 html[data-poster] [data-sheet] { display: none; }
-html[data-poster="hero"] [data-sheet="hero"], html[data-poster="grid"] [data-sheet="grid"], html[data-poster="design"] [data-sheet="design"], html[data-poster="features"] [data-sheet="features"] { display: block; }
+html[data-poster="hero"] [data-sheet="hero"], html[data-poster="design"] [data-sheet="design"], html[data-poster="features"] [data-sheet="features"] { display: block; }
 html[data-poster] section { padding: 0; border: 0; }
 html[data-poster] h1 { font-size: 44px; }
 html[data-poster] .hero h1 { margin: 0 0 20px; }
 html[data-poster] .hero .lead { margin-bottom: 12px; }
 html[data-poster] h2 { font-size: 24px; margin-bottom: 12px; }
-html[data-poster] .cell-sample { font-size: 30px; line-height: 1.35; }
-html[data-poster] .metrics { margin-top: 16px; }
-html[data-poster] .metrics dd { font-size: 17px; }
 html[data-poster] #compare { display: none; }
 html[data-poster] .align-card { padding: 7px 12px 6px; }
 html[data-poster] .align-card .plan-frame { height: 100px; }

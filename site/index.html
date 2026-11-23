@@ -33,7 +33,7 @@
     <summary>目次</summary>
     <nav aria-label="目次">
       <a href="#overview">概要</a>
-      <a href="#grid">グリッド</a><a href="#compare">比較</a>
+      <a href="#compare">比較</a>
       <a href="#design">設計</a><a href="#opentype">OpenType</a>
       <a href="#characters">文字</a><a href="#download">ダウンロード</a>
     </nav>
@@ -44,13 +44,7 @@
     <h1>Sotiak Mono</h1>
     <p class="lead">Sotiak Monoは、IosevkaとBIZ UDゴシックをベースにした、<br>日本語対応の等幅フォントです。</p>
   </section>
-  <div data-sheet="grid" class="print-page">
-    <section id="grid">
-      <h2>グリッド</h2>
-      <div class="cell-sample" aria-label="半角2文字と全角1文字の幅は同じ">AB日本12語<br>01あいABう</div>
-      <dl class="metrics"><div><dt>半角</dt><dd>{{half}} units</dd></div><div><dt>全角</dt><dd>{{full}} units</dd></div><div><dt>UPM</dt><dd>{{upm}}</dd></div><div><dt>幅の比率</dt><dd>1 : 2</dd></div></dl>
-    </section>
-    <section id="compare">
+  <section id="compare">
       <h2>比較</h2>
       <p class="caption">同じサイズ・同じ文字列で、Iosevka SS03 / JetBrains Mono / Consolas と比較。<span class="web-only">中央のバーをドラッグ、右のメニューで比較対象を切り替え。</span></p>
       <div class="compare-stage" data-target="iosevka" style="--split: .5">
@@ -79,8 +73,7 @@
   val ok = s.length > 8
   if (ok) print(s) else println(s)
 }</pre>
-    </section>
-  </div>
+  </section>
   <section id="design" data-sheet="design" class="print-page">
     <h2>設計</h2>
     <p class="caption">字形の細部。輪郭とメトリクスはビルド済みフォントから取得。</p>
