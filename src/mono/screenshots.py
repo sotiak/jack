@@ -5,7 +5,7 @@ import shutil
 from mono.paths import IMAGES
 from mono.site import SITE
 
-SHEETS = {"hero": 500, "weights": 680, "design": 600, "features": 700}
+SHEETS = {"hero": 220, "grid": 300, "design": 560, "features": 600}
 
 
 def render(*, pdf=False):
