@@ -7,5 +7,5 @@ bold_strength = 0  # 日本語太字の画線に加える幅。0で元の太さ
 italic_strength = 0  # Italicの日本語だけに適用。0で従来の太さ
 
 [glyphs]
-visible_fullwidth_space = false  # U+3000の既定表示。ss20で反転
+visible_fullwidth_space = true  # U+3000の既定表示。ss20で反転
 nerd_icons = true  # 私用領域のアイコンを半角1セルで追加

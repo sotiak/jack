@@ -1,6 +1,7 @@
 # Universal-profile checks Sotiak Mono intentionally does not satisfy.
 exclude_checks = [
   "base_has_width", # U+1CEB3 is a zero-width legacy-computing overlay.
+  "whitespace_ink", # U+3000 is drawn on purpose by default; ss20 inverts it.
 ]
 
 ["name/repeating_characters"]
