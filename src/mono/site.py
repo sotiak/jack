@@ -10,7 +10,7 @@ from fontTools.pens.svgPathPen import SVGPathPen
 from fontTools.ttLib import TTFont
 
 from mono.build import FILE_PREFIX, project_version
-from mono.paths import DIST, INPUT, LICENSE, LICENSES, PROJECT_ROOT
+from mono.paths import DIST, LICENSE, LICENSES, PROJECT_ROOT
 
 SITE = DIST / "site"
 STYLES = {
@@ -20,11 +20,6 @@ STYLES = {
     "BoldItalic": (700, "italic"),
 }
 DESIGNS = ["r", "g", "j", "Ww", "t", "M"]
-COMPARE_SAMPLE = """fun main() {
-  val s = "agijr WwtM 0O 1Il"
-  val ok = s.length > 8
-  if (ok) print(s) else println(s)
-}"""
 CHARACTERS = {
     "Basic latin": string.ascii_uppercase + "\n" + string.ascii_lowercase,
     "数字・記号": string.digits + string.punctuation,
@@ -188,7 +183,6 @@ def build_site():
             "upm": str(font["head"].unitsPerEm),
             "design": render_design(font, italic),
             "alignment": render_alignment(font, italic),
-            "compare": html.escape(COMPARE_SAMPLE),
             "characters": "\n".join(groups),
         }
     for key, value in values.items():
@@ -205,28 +199,16 @@ def build_site():
             f'@font-face{{font-family:"Sotiak Mono";src:url("fonts/{style}.woff2") '
             f'format("woff2");font-weight:{weight};font-style:{slope};font-display:swap;}}'
         )
-    subset_font(
-        INPUT / "Iosevka-Regular.ttf",
-        SITE / "fonts/Iosevka.woff2",
-        set(COMPARE_SAMPLE),
-        comparison=True,
-    )
-    css.append(
-        '@font-face{font-family:"Iosevka SS03";src:url("fonts/Iosevka.woff2") '
-        'format("woff2");font-weight:400;font-style:normal;font-display:swap;}'
-    )
     (SITE / "fonts.css").write_text("\n".join(css))
     (SITE / "index.html").write_text(template)
     for filename in ("style.css", "site.js"):
         shutil.copyfile(PROJECT_ROOT / "site" / filename, SITE / filename)
+    shutil.copytree(PROJECT_ROOT / "site/compare", SITE / "compare", dirs_exist_ok=True)
     shutil.copytree(LICENSES, SITE / "licenses", dirs_exist_ok=True)
     shutil.copyfile(LICENSE, SITE / "licenses/OFL.txt")
     return SITE
 
 
 def main():
-    from mono.screenshots import render
-
     build_site()
-    render(pdf=True)
     print(f"Built {SITE}")

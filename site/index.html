@@ -52,26 +52,33 @@
     </section>
     <section id="compare">
       <h2>比較</h2>
-      <p class="caption">同じサイズ・同じ文字列で、Iosevka SS03 または Consolas と比較。<span class="web-only">中央のバーをドラッグ、右のメニューで比較対象を切り替え。</span></p>
-      <div class="compare-stage" data-target="iosevka" style="--split: 50%">
+      <p class="caption">同じサイズ・同じ文字列で、Iosevka SS03 / JetBrains Mono / Consolas と比較。<span class="web-only">中央のバーをドラッグ、右のメニューで比較対象を切り替え。</span></p>
+      <div class="compare-stage" data-target="iosevka" style="--split: .5">
         <div class="compare-labels">
           <span>Sotiak Mono</span>
           <span class="compare-picker">
             <select id="compare-font" aria-label="比較対象フォント">
               <option value="iosevka">Iosevka SS03</option>
+              <option value="jetbrains">JetBrains Mono</option>
               <option value="consolas">Consolas</option>
             </select>
           </span>
           <span class="compare-target-label">Iosevka SS03</span>
         </div>
         <div class="compare-body">
-          <div class="compare-layer sotiak" aria-hidden="true"><pre>{{compare}}</pre></div>
-          <div class="compare-layer target" aria-hidden="true"><pre>{{compare}}</pre></div>
+          <img class="compare-image" src="compare/sotiak.png" width="1680" height="590" alt="比較用コード（Sotiak Mono）">
+          <div class="compare-layer target" aria-hidden="true">
+            <img class="compare-image" src="compare/iosevka.png" width="1680" height="590" alt="">
+          </div>
           <div class="compare-divider" aria-hidden="true"></div>
           <input id="compare-split" class="compare-range" type="range" min="0" max="100" value="50" step="1" aria-label="Sotiak Mono と比較対象フォントの境界">
         </div>
       </div>
-      <p class="compare-note web-only">Consolasはローカルフォントを使用。未インストール時は代替の等幅フォントで表示されます。</p>
+      <pre class="visually-hidden">fun main() {
+  val s = "agijr WwtM 0O 1Il"
+  val ok = s.length > 8
+  if (ok) print(s) else println(s)
+}</pre>
     </section>
   </div>
   <section id="design" data-sheet="design" class="print-page">
@@ -94,7 +101,7 @@
     </section>
   </div>
   <section id="characters" class="web-only" data-weight="regular"><h2>文字</h2><div class="char-controls"><div class="weights" role="group" aria-label="ウェイト"><button type="button" data-weight="regular" aria-pressed="true">Regular</button><button type="button" data-weight="bold" aria-pressed="false">Bold</button></div><label class="switch"><span>Italic</span><input id="characters-italic" type="checkbox"><span class="switch-track" aria-hidden="true"></span></label></div>{{characters}}</section>
-  <section id="download" class="web-only"><h2>ダウンロード</h2><p><a href="https://github.com/sotiak/mono/releases/latest">GitHub Releases</a> / <a href="specimen.pdf">書体見本 PDF（A4・4ページ）</a></p></section>
+  <section id="download" class="web-only"><h2>ダウンロード</h2><p><a href="https://github.com/sotiak/mono/releases/latest">GitHub Releases</a></p></section>
   <footer class="web-only"><p>Sotiak Mono / {{version}} / <a href="licenses/OFL.txt">SIL Open Font License 1.1</a></p><p><a href="licenses/Iosevka-OFL.txt">Iosevka</a> · <a href="licenses/BIZ-OFL.txt">BIZ UDゴシック</a> · <a href="licenses/nerd/LICENSE">Nerd Fonts</a> · <a href="licenses/0xProto-OFL.txt">0xProto</a></p></footer>
 </main>
 </div>

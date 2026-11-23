@@ -9,7 +9,7 @@ Sotiak Monoは、IosevkaをベースにBIZ UDゴシックを組み合わせた�
 
 ## Showcase
 
-[書体見本サイト](https://sotiak.github.io/mono/) / [PDF（A4・4ページ）](https://sotiak.github.io/mono/specimen.pdf) / [HTMLソース](site/index.html)。Iosevka SS03 / Consolasとの比較、字形の設計、代表文字を掲載しています。
+[書体見本サイト](https://sotiak.github.io/mono/) / [HTMLソース](site/index.html)。Iosevka SS03 / JetBrains Mono / Consolasとの比較、字形の設計、代表文字を掲載しています。
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset=".github/images/specimen-grid-dark.png">
@@ -56,4 +56,4 @@ fontspector --configuration fontbakery.toml dist/SotiakMono-*.ttf
 
 ## ライセンス
 
-SIL Open Font License 1.1。Iosevka、BIZ UDゴシック、Nerd Fonts、0xProtoの帰属表示は[assets/licenses](assets/licenses)にあります。
+SIL Open Font License 1.1。Iosevka、BIZ UDゴシック、Nerd Fonts、0xProto、JetBrains Monoの帰属表示は[assets/licenses](assets/licenses)にあります。

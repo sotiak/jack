@@ -42,14 +42,21 @@ const compareStage = document.querySelector('.compare-stage');
 const compareSplit = document.querySelector('#compare-split');
 const compareFont = document.querySelector('#compare-font');
 const compareTargetLabel = document.querySelector('.compare-target-label');
+const compareTargetImage = document.querySelector('.compare-layer.target img');
+const compareTargets = {
+  iosevka: 'compare/iosevka.png',
+  jetbrains: 'compare/jetbrains.png',
+  consolas: 'compare/consolas.png',
+};
 function setSplit(value) {
   const clamped = Math.max(0, Math.min(100, Number(value)));
   compareSplit.value = clamped;
-  compareStage.style.setProperty('--split', `${clamped}%`);
+  compareStage.style.setProperty('--split', String(clamped / 100));
 }
 function setCompareFont(name) {
   compareStage.dataset.target = name;
   compareFont.value = name;
+  compareTargetImage.src = compareTargets[name];
   compareTargetLabel.textContent = compareFont.selectedOptions[0].textContent;
 }
 compareSplit.addEventListener('input', () => setSplit(compareSplit.value));

@@ -45,7 +45,7 @@ jobs:
       - name: Build fonts
         run: nix develop --command uv run --locked build
 
-      - name: Build specimen and PDF
+      - name: Build specimen
         run: nix develop --command uv run --locked site
 
       - name: Test
