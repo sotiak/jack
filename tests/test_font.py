@@ -390,6 +390,10 @@ class FontTests(unittest.TestCase):
                 glyph = font["glyf"][name]
                 advance = font["hmtx"][name][0]
                 self.assertAlmostEqual((glyph.xMin + glyph.xMax) / 2, advance / 2, delta=1)
+                points, _, _ = glyph.getCoordinates(font["glyf"])
+                top = max(range(len(points)), key=lambda index: points[index][0])
+                x_height = font["glyf"][font.getBestCmap()[ord("x")]].yMax
+                self.assertEqual(points[top][1], x_height)
 
     def test_japanese_italic(self):
         for style, roman in (("Italic", "Regular"), ("BoldItalic", "Bold")):

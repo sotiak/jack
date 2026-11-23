@@ -857,12 +857,12 @@ def sweep_gj_tails(font, style, cmap):
                 new_points.append((otRound(points[index][0]), otRound(points[index][1])))
                 new_flags.append(int(flags[index]))
         if family == "g":
-            # Keep the tail's upper tip below the x-height. Hinting otherwise
-            # snaps it into the top row as a detached right shoulder, making
-            # the single-storey g look right-shifted at small sizes.
+            # Keep the tip just below the bowl. Hinting can otherwise snap it
+            # into the top row as a detached right shoulder, making the
+            # single-storey g look right-shifted at small sizes.
             tip = max(range(len(new_points)), key=lambda index: new_points[index][0])
             x_height = max(y for _, y in new_points)
-            new_points[tip] = (new_points[tip][0], min(new_points[tip][1], x_height - 28))
+            new_points[tip] = (new_points[tip][0], min(new_points[tip][1], x_height - 8))
         if contours == 2:
             end_pts = [len(new_points) - 1 - (ends[1] - first_end), len(new_points) - 1]
         else:
