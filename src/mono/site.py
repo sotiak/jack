@@ -10,7 +10,7 @@ from fontTools.pens.svgPathPen import SVGPathPen
 from fontTools.ttLib import TTFont
 
 from mono.build import FILE_PREFIX, project_version
-from mono.paths import DIST, LICENSE, LICENSES, PROJECT_ROOT
+from mono.paths import DIST, INPUT, LICENSE, LICENSES, PROJECT_ROOT
 
 SITE = DIST / "site"
 STYLES = {
@@ -19,7 +19,7 @@ STYLES = {
     "Bold": (700, "normal"),
     "BoldItalic": (700, "italic"),
 }
-DESIGNS = ["r", "g", "j", "Ww", "t", "M"]
+DESIGNS = ["r", "j", "hn"]
 CHARACTERS = {
     "Basic latin": string.ascii_uppercase + "\n" + string.ascii_lowercase,
     "数字・記号": string.digits + string.punctuation,
@@ -57,7 +57,7 @@ class TextCollector(HTMLParser):
             self.characters.update(data)
 
 
-def design_svg(font, text, variant, *, highlight_bar=False, label_guides=False):
+def design_svg(font, text, variant, *, original_font=None, highlight_bar=False, label_guides=False):
     glyphs = font.getGlyphSet()
     cmap = font.getBestCmap()
     paths = []
@@ -67,6 +67,23 @@ def design_svg(font, text, variant, *, highlight_bar=False, label_guides=False):
         glyphs[cmap[ord(char)]].draw(pen)
         paths.append(f'<path transform="translate({x},0)" d="{pen.getCommands()}"/>')
         x += font["hmtx"][cmap[ord(char)]][0]
+
+    original_paths = []
+    if original_font is not None:
+        original_glyphs = original_font.getGlyphSet()
+        original_cmap = original_font.getBestCmap()
+        x = 0
+        for char in text:
+            pen = SVGPathPen(original_glyphs)
+            original_glyphs[original_cmap[ord(char)]].draw(pen)
+            original_paths.append(f'<path transform="translate({x},0)" d="{pen.getCommands()}"/>')
+            x += font["hmtx"][cmap[ord(char)]][0]
+    original = ""
+    if original_paths:
+        original = (
+            '<g class="plan-original" transform="scale(1,-1)" fill="none" '
+            'stroke="currentColor">' + "".join(original_paths) + "</g>"
+        )
 
     upm = font["head"].unitsPerEm
     top, bottom = -upm, int(upm * 0.3)
@@ -119,26 +136,41 @@ def design_svg(font, text, variant, *, highlight_bar=False, label_guides=False):
         f'<svg class="plan-glyph" viewBox="{view}" role="img" '
         f'aria-label="{html.escape(text)}の輪郭とメトリクス（{variant}）">'
         f"{highlight}"
-        f'<g transform="scale(1,-1)" fill="currentColor">{"".join(paths)}</g></svg>'
+        f'<g transform="scale(1,-1)" fill="currentColor">{"".join(paths)}</g>{original}</svg>'
         f"{labels}</div>"
     )
 
 
-def render_design(font, italic_font):
+def render_design(font, italic_font, original_regular, original_italic):
     cards = []
     for text in DESIGNS:
         views = "".join(
-            design_svg(face, text, variant)
-            for face, variant in ((font, "roman"), (italic_font, "italic"))
+            design_svg(face, text, variant, original_font=original)
+            for face, original, variant in (
+                (font, original_regular, "roman"),
+                (italic_font, original_italic, "italic"),
+            )
         )
-        cards.append(f'<article class="design-card">{views}</article>')
+        cards.append(
+            f'<article class="design-card{" wide" if text == "hn" else ""}">{views}</article>'
+        )
     return "\n".join(cards)
 
 
-def render_alignment(font, italic_font):
+def render_alignment(font, italic_font, original_regular, original_italic):
     return "".join(
-        design_svg(face, "ftij", variant, highlight_bar=True, label_guides=True)
-        for face, variant in ((font, "roman"), (italic_font, "italic"))
+        design_svg(
+            face,
+            "ftij",
+            variant,
+            original_font=original,
+            highlight_bar=True,
+            label_guides=True,
+        )
+        for face, original, variant in (
+            (font, original_regular, "roman"),
+            (italic_font, original_italic, "italic"),
+        )
     )
 
 
@@ -165,6 +197,8 @@ def build_site():
     with (
         TTFont(DIST / f"{FILE_PREFIX}-Regular.ttf") as font,
         TTFont(DIST / f"{FILE_PREFIX}-Italic.ttf") as italic,
+        TTFont(INPUT / "Iosevka-Regular.ttf") as original,
+        TTFont(INPUT / "Iosevka-Italic.ttf") as original_italic,
     ):
         cmap = font.getBestCmap()
         groups = []
@@ -178,8 +212,8 @@ def build_site():
             )
         values = {
             "version": project_version(),
-            "design": render_design(font, italic),
-            "alignment": render_alignment(font, italic),
+            "design": render_design(font, italic, original, original_italic),
+            "alignment": render_alignment(font, italic, original, original_italic),
             "characters": "\n".join(groups),
         }
     for key, value in values.items():

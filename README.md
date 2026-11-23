@@ -13,7 +13,7 @@ Sotiak Monoは、IosevkaをベースにBIZ UDゴシックを組み合わせた�
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset=".github/images/specimen-design-dark.png">
-  <img src=".github/images/specimen-design-light.png" alt="ftijの横棒のそろいと、r・g・j・W/w・t・Mの輪郭" width="880">
+  <img src=".github/images/specimen-design-light.png" alt="ftijの横棒のそろい、r・j・h/nの輪郭（細い青い線は元の字形）" width="880">
 </picture>
 
 <picture>
