@@ -386,6 +386,20 @@ def copy_italic_k(font, style, cmap):
     refresh_composites(font, {target})
 
 
+def copy_rounded_u(font, style, cmap):
+    """Use Iosevka's cv55-11 u with a rounded bottom, as in JetBrains Mono."""
+    spec = VARIANTS[style]["u"]
+    target = cmap[ord("u")]
+    glyph = make_glyph(spec["points"], spec["ends"], spec["flags"])
+    glyph.recalcBounds(font["glyf"])
+    normalize_overlap(glyph)
+    if spec["advance"] != font["hmtx"][target][0]:
+        raise ValueError(f"{style}: rounded u advance differs from Iosevka")
+    font["glyf"][target] = glyph
+    font["hmtx"][target] = (spec["advance"], spec["lsb"])
+    refresh_composites(font, {target})
+
+
 def raise_f_crossbar(font, style, cmap):
     """Raise f's crossbar to the x-height shared by t and i/j."""
     glyf = font["glyf"]
@@ -1040,6 +1054,7 @@ def build_face(
         copy_proto_glyphs(font, style, cmap)
         copy_flat_t(font, style, cmap)
         copy_italic_k(font, style, cmap)
+        copy_rounded_u(font, style, cmap)
         raise_f_crossbar(font, style, cmap)
         copy_hanging_m(font, style, cmap)
         widen_r(font, style, cmap)
