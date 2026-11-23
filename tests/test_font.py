@@ -22,6 +22,7 @@ from mono.build import (
     sanitize_glyph_name,
     source_paths,
 )
+from mono.glyphs import VARIANTS
 from mono.paths import CONFIG, DIST
 
 CFG = tomllib.loads(CONFIG.read_text())
@@ -152,13 +153,24 @@ class FontTests(unittest.TestCase):
                 serifs = {"i", "j", "dotlessi", "uni0237"}
                 hanging_m = {"M"}
                 crossbar = {"f"}
+                cursive_k = {"k"} if hybrid else set()
                 affected = (
-                    set(hybrid) | single_g | proto | flat_t | wider | serifs | hanging_m | crossbar
+                    set(hybrid)
+                    | single_g
+                    | proto
+                    | flat_t
+                    | wider
+                    | serifs
+                    | hanging_m
+                    | crossbar
+                    | cursive_k
                 )
                 # a/y are direct copies in italic and can match the base once
                 # their hints are restored; the donor check covers them. f's
                 # crossbar is raised, so it is checked against i instead.
-                rebuilt = single_g | proto | flat_t | wider | serifs | hanging_m | crossbar
+                rebuilt = (
+                    single_g | proto | flat_t | wider | serifs | hanging_m | crossbar | cursive_k
+                )
                 if hybrid:
                     rebuilt.add("g")
                     with TTFont(INPUT / f"Iosevka-{style}True.ttf") as donor:
@@ -361,6 +373,15 @@ class FontTests(unittest.TestCase):
                     else:
                         self.assertEqual(glyph.yMax, cap_height, char)
                     self.assertEqual(glyph.yMin, 0, char)
+
+    def test_italic_k_is_cursive(self):
+        for style in ("Italic", "BoldItalic"):
+            with self.subTest(style=style), TTFont(DIST / f"{FILE_PREFIX}-{style}.ttf") as font:
+                glyph = font["glyf"][font.getBestCmap()[ord("k")]]
+                points, ends, _ = glyph.getCoordinates(font["glyf"])
+                spec = VARIANTS[style]["k"]
+                self.assertEqual([list(point) for point in points], spec["points"])
+                self.assertEqual(list(ends), spec["ends"])
 
     def test_upright_single_storey_g_centered(self):
         for style in ("Regular", "Bold"):
