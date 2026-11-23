@@ -162,7 +162,7 @@ class FontTests(unittest.TestCase):
                 crossbar = {"f"}
                 cursive_k = {"k"} if hybrid else set()
                 rounded_u = {"u"}
-                n_arch = {"n"} if style in ("Regular", "Bold") else set()
+                shoulders = {"n", "h"} if style in ("Regular", "Bold") else set()
                 affected = (
                     set(hybrid)
                     | single_g
@@ -174,7 +174,7 @@ class FontTests(unittest.TestCase):
                     | crossbar
                     | cursive_k
                     | rounded_u
-                    | n_arch
+                    | shoulders
                 )
                 # a/y are direct copies in italic and can match the base once
                 # their hints are restored; the donor check covers them. f's
@@ -189,7 +189,7 @@ class FontTests(unittest.TestCase):
                     | crossbar
                     | cursive_k
                     | rounded_u
-                    | n_arch
+                    | shoulders
                 )
                 if hybrid:
                     rebuilt.add("g")

@@ -107,10 +107,12 @@ F_BAR = {
     "BoldItalic": (379, 480),
 }
 X_HEIGHT_TOP = 520
-# Consolas-like n: shift the arch right while the joins to both stems stay fixed.
-N_ARCH_SHIFT = 20
-N_ARCH_POINTS = {"Regular": 34, "Bold": 30}
-N_ARCH_FACTORS = {
+# Consolas-like lowercase shoulders: shift the arch right while the joins to
+# both stems stay fixed.
+SHOULDER_CHARS = "nh"
+SHOULDER_SHIFT = 20
+SHOULDER_POINTS = {"Regular": 34, "Bold": 30}
+SHOULDER_FACTORS = {
     "Regular": {
         4: 0.25,
         5: 0.55,
@@ -496,30 +498,35 @@ def widen_r(font, style, cmap):
     refresh_composites(font, {target})
 
 
-def shift_n_arch(font, style, cmap):
-    """Shift n's arch right, as in Consolas, keeping both stem joins fixed."""
-    factors = N_ARCH_FACTORS.get(style)
+def shift_shoulders(font, style, cmap):
+    """Shift the n/h arches right, as in Consolas, keeping both stem joins fixed."""
+    factors = SHOULDER_FACTORS.get(style)
     if not factors:
         return
     glyf = font["glyf"]
-    target = cmap[ord("n")]
-    points, ends, flags = glyf[target].getCoordinates(glyf)
-    if len(points) != N_ARCH_POINTS[style]:
-        raise ValueError(f"{style}: expected {N_ARCH_POINTS[style]} n points, found {len(points)}")
-    glyph = make_glyph(
-        (
-            (x + otRound(N_ARCH_SHIFT * factors[index]) if index in factors else x, y)
-            for index, (x, y) in enumerate(points)
-        ),
-        ends,
-        flags,
-    )
-    glyph.recalcBounds(glyf)
-    normalize_overlap(glyph)
-    advance = font["hmtx"][target][0]
-    glyf[target] = glyph
-    font["hmtx"][target] = (advance, glyph.xMin)
-    refresh_composites(font, {target})
+    roots = set()
+    for char in SHOULDER_CHARS:
+        target = cmap[ord(char)]
+        points, ends, flags = glyf[target].getCoordinates(glyf)
+        if len(points) != SHOULDER_POINTS[style]:
+            raise ValueError(
+                f"{style}: expected {SHOULDER_POINTS[style]} {char} points, found {len(points)}"
+            )
+        glyph = make_glyph(
+            (
+                (x + otRound(SHOULDER_SHIFT * factors[index]) if index in factors else x, y)
+                for index, (x, y) in enumerate(points)
+            ),
+            ends,
+            flags,
+        )
+        glyph.recalcBounds(glyf)
+        normalize_overlap(glyph)
+        advance = font["hmtx"][target][0]
+        glyf[target] = glyph
+        font["hmtx"][target] = (advance, glyph.xMin)
+        roots.add(target)
+    refresh_composites(font, roots)
 
 
 def lengthen_ij_serifs(font, style, cmap):
@@ -1138,7 +1145,7 @@ def build_face(
         raise_f_crossbar(font, style, cmap)
         copy_hanging_m(font, style, cmap)
         widen_r(font, style, cmap)
-        shift_n_arch(font, style, cmap)
+        shift_shoulders(font, style, cmap)
         lengthen_ij_serifs(font, style, cmap)
         shift_j(font, style, cmap)
         sweep_gj_tails(font, style, cmap)
@@ -1245,7 +1252,7 @@ def build_face(
 def restore_hints(path, style):
     """Re-hint rebuilt glyphs without replacing Iosevka's hint tables.
 
-    The build replaces outlines for g/j/v/V/w/W/t/M/A/r/i/f/n and the italic a/y, which
+    The build replaces outlines for g/j/v/V/w/W/t/M/A/r/i/f/n/h and the italic a/y, which
     drops their TrueType programs. Iosevka's fpgm/cvt/prep tables are retained,
     so copy only the programs ttfautohint generates for those glyphs. Both sides
     use ttfautohint 1.8.4, which keeps the programs compatible.
