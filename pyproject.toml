@@ -1,6 +1,6 @@
 [project]
 name = "mono"
-version = "0.1.6"
+version = "0.1.7"
 description = "Build the Sotiak Mono programming font based on Iosevka and BIZ UD Gothic."
 readme = "README.md"
 license = "OFL-1.1"
