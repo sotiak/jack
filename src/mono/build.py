@@ -33,6 +33,7 @@ from .embolden import embolden
 from .fetch import BIZ_STYLES, IOSEVKA_ITALIC_STYLES, ensure_inputs
 from .glyphs import VARIANTS
 from .paths import CONFIG, DIST, INPUT, LICENSE, LICENSES, PYPROJECT
+from .proto_variants import PROTO_VARIANTS
 from .script_variants import SCRIPT_VARIANTS
 
 FAMILY = "Sotiak Mono"
@@ -98,6 +99,21 @@ SERIF_LEFTS = {
 }
 # Upright j is shifted right to balance the cell; matches JetBrains Mono's right edge.
 J_SHIFT = {"Regular": 31, "Bold": 31}
+# Iosevka draws f's crossbar below the x-height shared by t and i/j: (bottom, top).
+F_BAR = {
+    "Regular": (400, 473),
+    "Bold": (379, 480),
+    "Italic": (400, 473),
+    "BoldItalic": (379, 480),
+}
+X_HEIGHT_TOP = 520
+# 0xProto's v/V/w/W/A fill more of the cell; thin them back to Sotiak Mono's
+# weight after scaling. BoldItalic borrows the Italic shapes and gains weight.
+PROTO_GLYPHS = "vVwWA"
+PROTO_X_HEIGHT = 550
+PROTO_CAP_HEIGHT = 710
+PROTO_THIN = {"Regular": 14, "Bold": 19, "Italic": 14, "BoldItalic": 0}
+PROTO_STRENGTH = {"BoldItalic": 16}
 LIGATURES = (
     "***",
     "**",
@@ -300,21 +316,43 @@ def copy_single_storey_g(font, style, cmap):
         refresh_composites(font, {target})
 
 
-def copy_rounded_w(font, style, cmap):
-    """Use Iosevka's cv32-34/cv57-34 W/w with rounded vertical sides."""
-    variants = VARIANTS[style]
+def copy_proto_glyphs(font, style, cmap):
+    """Use 0xProto's wide-interior v/V/w/W/A, fitted to the cell and weight."""
+    glyf = font["glyf"]
+    metrics = font["hmtx"].metrics
+    half = metrics[cmap[32]][0]
+    x_height = glyf[cmap[ord("x")]].yMax
+    cap_height = glyf[cmap[ord("H")]].yMax
+    specs = PROTO_VARIANTS["Italic" if style == "BoldItalic" else style]
+    thin = PROTO_THIN[style]
+    strength = PROTO_STRENGTH.get(style, 0)
     roots = set()
-    for char in ("W", "w"):
-        target = cmap[ord(char)]
-        spec = variants[char]
-        glyph = make_glyph(spec["points"], spec["ends"], spec["flags"])
-        glyph.recalcBounds(font["glyf"])
+    for char in PROTO_GLYPHS:
+        spec = specs[char]
+        nominal = PROTO_X_HEIGHT if char.islower() else PROTO_CAP_HEIGHT
+        target = x_height if char.islower() else cap_height
+        scale_x = half / spec["advance"]
+        scale_y = target / nominal
+        glyph = make_glyph(
+            ((otRound(x * scale_x), otRound(y * scale_y)) for x, y in spec["points"]),
+            spec["ends"],
+            spec["flags"],
+        )
+        glyph.recalcBounds(glyf)
+        if thin:
+            embolden(glyph, -thin, 0)
+        if strength:
+            embolden(glyph, strength, 0)
+        glyph.recalcBounds(glyf)
+        dx = otRound((half - glyph.xMin - glyph.xMax) / 2)
+        if dx:
+            glyph.coordinates.translate((dx, 0))
+        glyph.recalcBounds(glyf)
         normalize_overlap(glyph)
-        if spec["advance"] != font["hmtx"][target][0]:
-            raise ValueError(f"{style}: rounded {char} advance differs from Iosevka")
-        font["glyf"][target] = glyph
-        font["hmtx"][target] = (spec["advance"], spec["lsb"])
-        roots.add(target)
+        target_name = cmap[ord(char)]
+        glyf[target_name] = glyph
+        metrics[target_name] = (half, glyph.xMin)
+        roots.add(target_name)
     refresh_composites(font, roots)
 
 
@@ -329,6 +367,28 @@ def copy_flat_t(font, style, cmap):
         raise ValueError(f"{style}: flat t advance differs from Iosevka")
     font["glyf"][target] = glyph
     font["hmtx"][target] = (spec["advance"], spec["lsb"])
+    refresh_composites(font, {target})
+
+
+def raise_f_crossbar(font, style, cmap):
+    """Raise f's crossbar to the x-height shared by t and i/j."""
+    glyf = font["glyf"]
+    target = cmap[ord("f")]
+    points, ends, flags = glyf[target].getCoordinates(glyf)
+    bottom, top = F_BAR[style]
+    bar = {index for index, (_, y) in enumerate(points) if bottom <= y <= top}
+    if len(bar) != 8:
+        raise ValueError(f"{style}: expected 8 f crossbar points, found {len(bar)}")
+    shift = X_HEIGHT_TOP - top
+    glyph = make_glyph(
+        ((x, y + shift if index in bar else y) for index, (x, y) in enumerate(points)),
+        ends,
+        flags,
+    )
+    glyph.recalcBounds(glyf)
+    advance = font["hmtx"][target][0]
+    glyf[target] = glyph
+    font["hmtx"][target] = (advance, glyph.xMin)
     refresh_composites(font, {target})
 
 
@@ -961,8 +1021,9 @@ def build_face(
         disable_ligatures(font)
         copy_true_italic(font, style, cmap)
         copy_single_storey_g(font, style, cmap)
-        copy_rounded_w(font, style, cmap)
+        copy_proto_glyphs(font, style, cmap)
         copy_flat_t(font, style, cmap)
+        raise_f_crossbar(font, style, cmap)
         copy_hanging_m(font, style, cmap)
         widen_r(font, style, cmap)
         lengthen_ij_serifs(font, style, cmap)
@@ -983,9 +1044,7 @@ def build_face(
             style, bold_strength
         )
         variations = {}
-        notices = set()
-        if style in ("Italic", "BoldItalic"):
-            notices.add("0xProto Project Authors (https://github.com/0xType)")
+        notices = {"0xProto Project Authors (https://github.com/0xType)"}
         for path in source_paths(style):
             with TTFont(path) as donor:
                 notices.add(donor["name"].getDebugName(0))
@@ -1073,7 +1132,7 @@ def build_face(
 def restore_hints(path, style):
     """Re-hint rebuilt glyphs without replacing Iosevka's hint tables.
 
-    The build replaces outlines for g/j/W/w/t/M/r/i and the italic a/f/y, which
+    The build replaces outlines for g/j/v/V/w/W/t/M/A/r/i/f and the italic a/y, which
     drops their TrueType programs. Iosevka's fpgm/cvt/prep tables are retained,
     so copy only the programs ttfautohint generates for those glyphs. Both sides
     use ttfautohint 1.8.4, which keeps the programs compatible.

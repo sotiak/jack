@@ -146,20 +146,24 @@ class FontTests(unittest.TestCase):
                 )
                 hybrid = {"a", "f", "y", "g"} if style in ("Italic", "BoldItalic") else set()
                 single_g = {"g"} if style in ("Regular", "Bold") else set()
-                rounded = {"W", "w"}
+                proto = {"v", "V", "w", "W", "A"}
                 flat_t = {"t"}
                 wider = {"r"}
                 serifs = {"i", "j", "dotlessi", "uni0237"}
                 hanging_m = {"M"}
-                affected = set(hybrid) | single_g | rounded | flat_t | wider | serifs | hanging_m
-                # a/f/y are direct copies in italic and can match the base once
-                # their hints are restored; the donor check covers them.
-                rebuilt = single_g | rounded | flat_t | wider | serifs | hanging_m
+                crossbar = {"f"}
+                affected = (
+                    set(hybrid) | single_g | proto | flat_t | wider | serifs | hanging_m | crossbar
+                )
+                # a/y are direct copies in italic and can match the base once
+                # their hints are restored; the donor check covers them. f's
+                # crossbar is raised, so it is checked against i instead.
+                rebuilt = single_g | proto | flat_t | wider | serifs | hanging_m | crossbar
                 if hybrid:
                     rebuilt.add("g")
                     with TTFont(INPUT / f"Iosevka-{style}True.ttf") as donor:
                         donor_cmap = donor.getBestCmap()
-                        for char in "afy":
+                        for char in "ay":
                             target = base_cmap[ord(char)]
                             source = donor_cmap[ord(char)]
                             points, ends, _ = donor["glyf"][source].getCoordinates(donor["glyf"])
@@ -322,6 +326,41 @@ class FontTests(unittest.TestCase):
                     os2.usWinDescent,
                 )
         self.assertEqual(len(set(metrics.values())), 1, metrics)
+
+    def test_f_crossbar_aligns_with_i(self):
+        for style in STYLES:
+            with self.subTest(style=style), TTFont(DIST / f"{FILE_PREFIX}-{style}.ttf") as font:
+                glyf = font["glyf"]
+                cmap = font.getBestCmap()
+                bars = {}
+                for char in "fi":
+                    points, _, _ = glyf[cmap[ord(char)]].getCoordinates(glyf)
+                    bars[char] = {y for _, y in points if 300 <= y <= 520}
+                self.assertEqual(bars["f"], bars["i"])
+
+    def test_proto_glyphs_fit_cell(self):
+        for style in STYLES:
+            with self.subTest(style=style), TTFont(DIST / f"{FILE_PREFIX}-{style}.ttf") as font:
+                glyf = font["glyf"]
+                cmap = font.getBestCmap()
+                half = font["hmtx"][cmap[32]][0]
+                x_height = glyf[cmap[ord("x")]].yMax
+                cap_height = glyf[cmap[ord("H")]].yMax
+                for char in "vVwWA":
+                    name = cmap[ord(char)]
+                    glyph = glyf[name]
+                    glyph.recalcBounds(glyf)
+                    self.assertEqual(font["hmtx"][name][0], half, char)
+                    self.assertAlmostEqual(
+                        (glyph.xMin + glyph.xMax) / 2, half / 2, delta=1, msg=char
+                    )
+                    if char in "VwWA":
+                        self.assertGreaterEqual(glyph.xMax - glyph.xMin, 500, char)
+                    if char in "vw":
+                        self.assertEqual(glyph.yMax, x_height, char)
+                    else:
+                        self.assertEqual(glyph.yMax, cap_height, char)
+                    self.assertEqual(glyph.yMin, 0, char)
 
     def test_upright_single_storey_g_centered(self):
         for style in ("Regular", "Bold"):

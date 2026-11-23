@@ -44,14 +44,16 @@ def embolden_function():
     return fn
 
 
-def embolden(glyph, strength):
+def embolden(glyph, strength, y_strength=None):
+    """Grow an outline; negative strength thins it and y_strength=0 keeps height."""
+    y_strength = strength if y_strength is None else y_strength
     count = len(glyph.coordinates)
     points = (Vector * count)(*(Vector(x, y) for x, y in glyph.coordinates))
     tags = (ct.c_char * count).from_buffer_copy(glyph.flags)
     ends = (ct.c_short * len(glyph.endPtsOfContours))(*glyph.endPtsOfContours)
     outline = Outline(len(ends), count, points, tags, ends, 0)
-    if embolden_function()(ct.byref(outline), strength, strength):
+    if embolden_function()(ct.byref(outline), strength, y_strength):
         raise ValueError("FreeType could not embolden this outline")
     # FreeType grows to the right and upwards. Keep the original ink centered.
-    offset = strength // 2
-    glyph.coordinates = GlyphCoordinates((p.x - offset, p.y - offset) for p in points)
+    offset_x, offset_y = strength // 2, y_strength // 2
+    glyph.coordinates = GlyphCoordinates((p.x - offset_x, p.y - offset_y) for p in points)
