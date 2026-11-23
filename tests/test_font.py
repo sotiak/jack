@@ -113,6 +113,13 @@ class FontTests(unittest.TestCase):
                         glyph = out["glyf"][name]
                         self.assertGreaterEqual(glyph.xMin, 0)
                         self.assertLessEqual(glyph.xMax, half)
+                        reference = "h" if char in "fkl" else char
+                        self.assertAlmostEqual(
+                            glyph.yMax,
+                            out["glyf"][out.getBestCmap()[ord(reference)]].yMax,
+                            delta=16,
+                            msg=char,
+                        )
                 else:
                     self.assertIsNone(feature(out, "ss01"))
                 ss19 = out_table.LookupList.Lookup[feature(out, "ss19").LookupListIndex[0]]

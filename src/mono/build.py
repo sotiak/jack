@@ -790,17 +790,24 @@ def add_script_variants(font, style, cmap):
     margin = otRound(half * 0.04)
     strength = SCRIPT_STRENGTH if style == "BoldItalic" else 0
     ours = {}
-    for char in ("o", "O"):
+    for char in ("o", "O", "h"):
         glyph = glyf[cmap[ord(char)]]
         glyph.recalcBounds(glyf)
         ours[char] = glyph.yMax
     mapping = {}
     added = []
+    tall = {"f", "k", "l"}
     for char in SCRIPT_CHARS:
         spec = SCRIPT_VARIANTS[char]
         points, ends, flags = spec["points"], spec["ends"], spec["flags"]
         scale_x = half / spec["advance"]
-        scale_y = ours["O"] / spec["ymax"] if char == "O" else ours["o"] / spec["ymax"]
+        if char == "O":
+            target = ours["O"]
+        elif char in tall:
+            target = ours["h"]  # keep ascenders at Iosevka's ascender height
+        else:
+            target = ours["o"]
+        scale_y = target / spec["ymax"]
         points = [(x * scale_x, y * scale_y) for x, y in points]
         xmin = min(x for x, _ in points)
         xmax = max(x for x, _ in points)
