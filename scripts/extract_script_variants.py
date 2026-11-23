@@ -1,4 +1,4 @@
-"""Regenerate src/jack/script_variants.py from 0xProto's italic Script Variant.
+"""Regenerate src/mono/script_variants.py from 0xProto's italic Script Variant.
 
 Download 0xProto_2_502.zip from the pinned release, then run:
 
@@ -11,7 +11,7 @@ from pathlib import Path
 from fontTools.ttLib import TTFont
 
 CHARS = "fklrsoO"
-OUTPUT = Path(__file__).parent.parent / "src/jack/script_variants.py"
+OUTPUT = Path(__file__).parent.parent / "src/mono/script_variants.py"
 WIDTH = 100
 
 HEADER = '''"""0xProto italic Script Variant glyphs used as ss01 by Sotiak Mono.

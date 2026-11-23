@@ -9,7 +9,7 @@ from pathlib import Path
 from fontTools.ttLib import TTFont
 from PIL import Image, ImageDraw, ImageFont
 
-from jack.build import (
+from mono.build import (
     FAMILY,
     FILE_PREFIX,
     INPUT,
@@ -21,7 +21,7 @@ from jack.build import (
     project_version,
     source_paths,
 )
-from jack.paths import CONFIG, DIST
+from mono.paths import CONFIG, DIST
 
 CFG = tomllib.loads(CONFIG.read_text())
 JP = CFG["japanese"]

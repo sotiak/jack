@@ -77,7 +77,7 @@ def verify_inputs(root: Path = INPUT) -> None:
 
 def _download(url: str, dest: Path, source: Mapping[str, str]) -> None:
     print(f"Downloading {url}")
-    request = urllib.request.Request(url, headers={"User-Agent": "jack-font-fetch/1.0"})
+    request = urllib.request.Request(url, headers={"User-Agent": "mono-font-fetch/1.0"})
     with urllib.request.urlopen(request, timeout=60) as response, dest.open("wb") as file:
         shutil.copyfileobj(response, file)
     _verify_digest(dest, source)

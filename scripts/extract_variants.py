@@ -1,4 +1,4 @@
-"""Regenerate src/jack/glyphs.py from Iosevka's variant glyphs.
+"""Regenerate src/mono/glyphs.py from Iosevka's variant glyphs.
 
 The PkgTTF-IosevkaSS03 input has no cv glyphs, so fetch the full package
 instead, unzip the four Extended faces, and point this script at them:
@@ -22,7 +22,7 @@ FACES = {
     "BoldItalic": "Iosevka-ExtendedBoldOblique.ttf",
 }
 GLYPHS = {"W": "W.cv32-34", "w": "w.cv57-34", "t": "t.cv54-8", "M": "M.cv23-1"}
-OUTPUT = Path(__file__).parent.parent / "src/jack/glyphs.py"
+OUTPUT = Path(__file__).parent.parent / "src/mono/glyphs.py"
 WIDTH = 100
 
 HEADER = '''"""Iosevka glyph variants used by the Sotiak Mono build.

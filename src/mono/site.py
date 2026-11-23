@@ -8,8 +8,8 @@ from fontTools import subset
 from fontTools.pens.svgPathPen import SVGPathPen
 from fontTools.ttLib import TTFont
 
-from jack.build import FILE_PREFIX, project_version
-from jack.paths import DIST, INPUT, LICENSE, LICENSES, PROJECT_ROOT
+from mono.build import FILE_PREFIX, project_version
+from mono.paths import DIST, INPUT, LICENSE, LICENSES, PROJECT_ROOT
 
 SITE = DIST / "site"
 STYLES = {
@@ -149,7 +149,7 @@ def build_site():
 
 
 def main():
-    from jack.screenshots import render
+    from mono.screenshots import render
 
     build_site()
     render(pdf=True)

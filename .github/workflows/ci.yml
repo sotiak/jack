@@ -33,7 +33,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v')
         run: |
           version=$(nix develop --command uv run --locked python -c \
-            'from jack.build import project_version; print(project_version())')
+            'from mono.build import project_version; print(project_version())')
           if [ "${GITHUB_REF_NAME#v}" != "$version" ]; then
             echo "::error::Tag ${GITHUB_REF_NAME} does not match pyproject version ${version}"
             exit 1

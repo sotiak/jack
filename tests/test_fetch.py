@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from jack import fetch
+from mono import fetch
 
 
 def test_verify_inputs_checks_lock_and_files(

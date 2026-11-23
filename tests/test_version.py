@@ -3,8 +3,8 @@ from io import BytesIO
 import pytest
 from fontTools.ttLib import TTFont
 
-from jack.build import FILE_PREFIX, font_revision, set_names
-from jack.paths import INPUT
+from mono.build import FILE_PREFIX, font_revision, set_names
+from mono.paths import INPUT
 
 
 def test_serialized_versions_increase():

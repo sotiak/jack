@@ -9,9 +9,9 @@ Sotiak Monoは、IosevkaをベースにBIZ UDゴシックを組み合わせた�
 
 ## Showcase
 
-[書体見本サイト](https://sotiak.github.io/jack/) / [PDF（A4・4ページ）](https://sotiak.github.io/jack/specimen.pdf) / [HTMLソース](site/index.html)。Iosevka SS03との比較、字形の設計、代表文字を掲載しています。
+[書体見本サイト](https://sotiak.github.io/mono/) / [PDF（A4・4ページ）](https://sotiak.github.io/mono/specimen.pdf) / [HTMLソース](site/index.html)。Iosevka SS03との比較、字形の設計、代表文字を掲載しています。
 
-[Texture Healingデモ](https://sotiak.github.io/jack/#texture)では、`calt` の分割比較、差分オーバーレイ、テキスト入力、スイープを操作できます。
+[Texture Healingデモ](https://sotiak.github.io/mono/#texture)では、`calt` の分割比較、差分オーバーレイ、テキスト入力、スイープを操作できます。
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset=".github/images/specimen-weights-dark.png">

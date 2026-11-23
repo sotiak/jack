@@ -2,8 +2,8 @@
 
 import shutil
 
-from jack.paths import IMAGES
-from jack.site import SITE
+from mono.paths import IMAGES
+from mono.site import SITE
 
 SHEETS = {"hero": 500, "weights": 680, "design": 600, "features": 700}
 
