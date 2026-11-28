@@ -125,9 +125,10 @@
             pkgs.pre-commit
             pkgs.nil
             pkgs.nixd
-            pkgs.ttfautohint
             pkgs.chromium
           ]
+          # ttfautohint-py has no aarch64-linux wheel; its sdist falls back to PATH.
+          ++ pkgs.lib.optional (system == "aarch64-linux") pkgs.ttfautohint
           ++ pkgs.lib.optional (fontspector != null) fontspector;
 
           # Pillow's wheel uses zlib and loads libfribidi for Raqm text layout;

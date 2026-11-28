@@ -206,6 +206,7 @@ source = { editable = "." }
 dependencies = [
     { name = "fonttools", extra = ["woff"] },
     { name = "pillow" },
+    { name = "ttfautohint-py" },
 ]
 
 [package.dev-dependencies]
@@ -221,6 +222,7 @@ dev = [
 requires-dist = [
     { name = "fonttools", extras = ["woff"], specifier = "==4.61.1" },
     { name = "pillow", specifier = "==13.0.0" },
+    { name = "ttfautohint-py", specifier = "==0.6.1" },
 ]
 
 [package.metadata.requires-dev]
@@ -369,6 +371,18 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/2c/a5/2e136dede2a88aaaf54498bbbdc81bc810f788ef6ef01efb97037d73cd1d/ruff-0.17.5-py3-none-win32.whl", hash = "sha256:e1546609b2ad73f1d6c5c076881b788672b7b3cc3283981182cbdbb6524ed88a", size = 9929908, upload-time = "2026-11-12T17:54:47.067Z" },
     { url = "https://files.pythonhosted.org/packages/ec/8c/e4db9ae1e0ee233c04df007ab6d0d42f799ae9abd95d352b6092ee7bc4bf/ruff-0.17.5-py3-none-win_amd64.whl", hash = "sha256:aa415d57c244299279901d776607fee3df7831c2a7435433fbfacde8632c6550", size = 10275454, upload-time = "2026-11-12T17:54:49.401Z" },
     { url = "https://files.pythonhosted.org/packages/e6/65/a1648bc1550e7683bf7bf1e2ce2485c9f8535cbca6cca9ec7b73cc12fb8e/ruff-0.17.5-py3-none-win_arm64.whl", hash = "sha256:64a6fd668a336df959c522991de33e9e3c8be463afc0c9ac8f029f9d19ef756e", size = 9849020, upload-time = "2026-11-12T17:54:52.055Z" },
+]
+
+[[package]]
+name = "ttfautohint-py"
+version = "0.6.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/83/5c/d33e63056c795903c44b0f62766052c7d2a3e4d1114b5aab03c457129e5e/ttfautohint_py-0.6.1.tar.gz", hash = "sha256:c413522ed77cb16c262a1d748113a6d9e7fb9e565775ed57a7657ce7323e23e4", size = 48814563, upload-time = "2026-07-15T11:49:15.517Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/0f/92/4cda76fa204369dc53971d12de1bda794f0c45391346ed008dcb73685aba/ttfautohint_py-0.6.1-py3-none-macosx_10_9_universal2.whl", hash = "sha256:a7d621dcdebd5a6ca09f8068e8192e624514d503029dc6dd3d63837bf3891c2e", size = 1995403, upload-time = "2026-07-15T11:49:02.652Z" },
+    { url = "https://files.pythonhosted.org/packages/5c/bd/8f31064345cd131a7d4d9f1442c7c2fe5796c6e0325afb0f3011c11fd0b4/ttfautohint_py-0.6.1-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:90250631e8646c96a01fdae1736191b021811e41923a7b8259b07690466b7e7d", size = 13847790, upload-time = "2026-07-15T11:49:04.588Z" },
+    { url = "https://files.pythonhosted.org/packages/15/56/b0c38297f27312926931bcdb1ad2387eaf56b22f75f8b71080cfa6ae2246/ttfautohint_py-0.6.1-py3-none-win32.whl", hash = "sha256:b13ce29c857de1e8730849a3ac94a097a42c8e46a81e0f53408fceaa421a7431", size = 18125621, upload-time = "2026-07-15T11:49:07.604Z" },
+    { url = "https://files.pythonhosted.org/packages/5b/6b/d6263027913a1e75c5d41577370463352cccb648ccdc490e4cc27574d04a/ttfautohint_py-0.6.1-py3-none-win_amd64.whl", hash = "sha256:5eb9448184c1d53ff891f1b09c388bf69578e5f66321474f17a93e8cd96eebd3", size = 18201110, upload-time = "2026-07-15T11:49:11.252Z" },
 ]
 
 [[package]]

@@ -28,6 +28,8 @@ from fontTools.ttLib import TTFont, newTable
 from fontTools.ttLib.tables import otTables
 from fontTools.ttLib.tables._g_l_y_f import Glyph, GlyphCoordinates
 from fontTools.ttLib.tables.ttProgram import Program
+from ttfautohint import TAError
+from ttfautohint import run as run_ttfautohint
 
 from .embolden import embolden
 from .fetch import BIZ_STYLES, IOSEVKA_ITALIC_STYLES, ensure_inputs
@@ -1254,8 +1256,8 @@ def restore_hints(path, style):
 
     The build replaces outlines for g/j/v/V/w/W/t/M/A/r/i/f/n/h and the italic a/y, which
     drops their TrueType programs. Iosevka's fpgm/cvt/prep tables are retained,
-    so copy only the programs ttfautohint generates for those glyphs. Both sides
-    use ttfautohint 1.8.4, which keeps the programs compatible.
+    so copy only the programs ttfautohint generates for those glyphs. The bundled
+    ttfautohint 1.8.4 keeps the programs compatible.
     """
     with TTFont(INPUT / f"Iosevka-{style}.ttf", recalcTimestamp=False) as base:
         targets = {
@@ -1269,15 +1271,15 @@ def restore_hints(path, style):
     with tempfile.TemporaryDirectory(dir=path.parent) as tmp:
         auto_path = Path(tmp) / path.name
         try:
-            subprocess.run(
-                ["ttfautohint", "--no-info", str(path), str(auto_path)],
+            run_ttfautohint(
+                ["--no-info", str(path), str(auto_path)],
                 check=True,
                 capture_output=True,
                 text=True,
             )
-        except FileNotFoundError as error:
+        except TAError as error:
             raise RuntimeError(
-                "ttfautohint is required; run the build inside `nix develop`"
+                "ttfautohint-py has no bundled executable; install a wheel or add ttfautohint to PATH"
             ) from error
         except subprocess.CalledProcessError as error:
             raise RuntimeError(f"ttfautohint failed for {path.name}:\n{error.stderr}") from error
